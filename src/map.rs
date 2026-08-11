@@ -1,4 +1,7 @@
-use super::*;
+use crate::Position;
+use crate::Renderable;
+use bevy::color::palettes::basic;
+use bevy::prelude::*;
 #[derive(Clone, Copy, PartialEq)]
 pub enum Tile {
     Floor,
@@ -15,8 +18,8 @@ impl Tile {
 
     pub fn fg(self) -> Color {
         match self {
-            Tile::Floor => Color::srgb(0.35, 0.35, 0.4),
-            Tile::Wall => Color::srgb(0.8, 0.8, 0.85),
+            Tile::Floor => basic::GRAY.into(),
+            Tile::Wall => basic::TEAL.into(),
         }
     }
     pub fn bg(self) -> Color {

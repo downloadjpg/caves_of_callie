@@ -6,8 +6,8 @@ mod player;
 #[derive(Component)]
 struct Renderable {
     glyph: char,
-    fg: LinearRgba,
-    bg: LinearRgba,
+    fg: Color,
+    bg: Color,
 }
 
 #[derive(Component, Clone, Copy)]
@@ -47,8 +47,8 @@ fn render(mut term: Single<&mut Terminal>, q_renderables: Query<(&Renderable, &P
     for (renderable, position) in q_renderables {
         if let Some(tile) = term.try_tile_mut(position) {
             tile.glyph = renderable.glyph;
-            tile.bg_color = renderable.bg;
-            tile.fg_color = renderable.fg;
+            tile.bg_color = renderable.bg.into();
+            tile.fg_color = renderable.fg.into();
         }
     }
 }
