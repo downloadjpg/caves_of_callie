@@ -6,17 +6,23 @@ pub enum Tile {
 }
 
 impl Tile {
-    pub fn glyph(self) -> &'static str {
+    pub fn glyph(self) -> char {
         match self {
-            Tile::Floor => ".",
-            Tile::Wall => "#",
+            Tile::Floor => '.',
+            Tile::Wall => '#',
         }
     }
 
-    pub fn color(self) -> Color {
+    pub fn fg(self) -> Color {
         match self {
             Tile::Floor => Color::srgb(0.35, 0.35, 0.4),
             Tile::Wall => Color::srgb(0.8, 0.8, 0.85),
+        }
+    }
+    pub fn bg(self) -> Color {
+        match self {
+            Tile::Floor => Color::BLACK,
+            Tile::Wall => Color::BLACK,
         }
     }
 }
@@ -33,11 +39,22 @@ impl Map {
         x >= 0 && x < self.width && y >= 0 && y < self.height
     }
 
-    fn index(&self, x: i32, y: i32) -> Option<usize> {
+    pub fn index(&self, x: i32, y: i32) -> Option<usize> {
         if self.in_bounds(x, y) {
             Some((y * self.width + x) as usize)
         } else {
             None
+        }
+    }
+
+    pub fn pos(&self, index: usize) -> Option<(i32, i32)> {
+        if index < 0 || index >= self.tiles.len() {
+            None
+        } else {
+            let x: i32 = index as i32 % self.width;
+            let y: i32 = index as i32 / self.width;
+            assert!(self.index(x, y) == Some(index));
+            Some((x, y))
         }
     }
 
@@ -71,6 +88,17 @@ impl Map {
     }
 }
 
-pub fn add_map_to_world(mut commands: Commands) {
-    commands.spawn(Map::basic(20, 20));
+pub fn spawn_tiles(mut commands: Commands, map: Map) {
+    for i in 0..(map.width * map.height) {
+        let pos = map.pos(i as usize).unwrap();
+        let tile = map.get(pos.0, pos.1).unwrap();
+        commands.spawn((
+            Renderable {
+                glyph: tile.glyph(),
+                fg: tile.fg().into(),
+                bg: tile.bg().into(),
+            },
+            Position { x: pos.0, y: pos.1 },
+        ));
+    }
 }

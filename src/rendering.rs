@@ -7,6 +7,7 @@ const TILE_SIZE: f32 = 20.0;
 const FONT_SIZE: f32 = 20.0;
 
 #[derive(Component)]
+#[require(Text2d, TextFont, TextColor, Transform)]
 pub struct GridCell {
     x: i32,
     y: i32,
@@ -40,11 +41,18 @@ pub fn render_map_system(
     cell_query: Query<(&GridCell, &mut Text2d, &mut TextColor)>,
 ) {
     let map = map_query.iter().next().expect("No map found for game!");
+
+    // Iterate through all display cells in our grid
     for (cell, mut text, mut color) in cell_query {
+        // Find the corresponding tile
         if let Some(tile) = map.get(cell.x, cell.y) {
             *text = Text2d::new(tile.glyph());
             *color = TextColor(tile.color());
         }
+        // Render creatures
+        //.... how do we find creatures?
+        // We can't put them in a 'creatures' collection like we did with map, since each creature is its own component.
+        // It lives in the world, not in any struct.
     }
 }
 
