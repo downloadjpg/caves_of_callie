@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 #[derive(Component)]
 #[require(
-    crate::Position { x: 5, y: 5},
+    crate::Position(IVec2 { x: 5, y: 5 }),
     crate::Renderable {
         glyph: '@',
         fg: Color::WHITE,

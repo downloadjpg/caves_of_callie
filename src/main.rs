@@ -14,19 +14,17 @@ struct Renderable {
 }
 
 #[derive(Component, Clone, Copy)]
-struct Position {
-    x: i32,
-    y: i32,
-}
-impl From<&Position> for IVec2 {
-    fn from(pos: &Position) -> IVec2 {
-        IVec2 { x: pos.x, y: pos.y }
-    }
-}
+struct Position(IVec2);
 
 impl Default for Position {
     fn default() -> Position {
-        Position { x: 0, y: 0 }
+        Position(IVec2::default())
+    }
+}
+
+impl From<Position> for IVec2 {
+    fn from(pos: Position) -> IVec2 {
+        pos.0
     }
 }
 
@@ -58,7 +56,7 @@ fn draw(
     q_map.draw(&mut term);
     // Draw renderable entities
     for (renderable, position) in q_renderables {
-        if let Some(tile) = term.try_tile_mut(position) {
+        if let Some(tile) = term.try_tile_mut(*position) {
             tile.glyph = renderable.glyph;
             tile.bg_color = renderable.bg.into();
             tile.fg_color = renderable.fg.into();
@@ -84,20 +82,40 @@ fn handle_input(
 }
 
 fn player_movement(input: Res<ButtonInput<KeyCode>>, q_player: Single<(&Player, &mut Position)>) {
-    let mut dir = IVec2::ZERO;
-    if input.just_pressed(KeyCode::ArrowRight) {
-        dir.x += 1;
+    // Cardinal directions: arrows + numpad
+    let right_keys = [KeyCode::ArrowRight, KeyCode::Numpad6];
+    let left_keys = [KeyCode::ArrowLeft, KeyCode::Numpad4];
+    let up_keys = [KeyCode::ArrowUp, KeyCode::Numpad8];
+    let down_keys = [KeyCode::ArrowDown, KeyCode::Numpad2];
+
+    // Diagonals: numpad only
+    let up_left_keys = [KeyCode::Numpad7];
+    let up_right_keys = [KeyCode::Numpad9];
+    let down_left_keys = [KeyCode::Numpad1];
+    let down_right_keys = [KeyCode::Numpad3];
+
+    let dir = if input.any_just_pressed(up_left_keys) {
+        IVec2::new(-1, -1)
+    } else if input.any_just_pressed(up_right_keys) {
+        IVec2::new(1, -1)
+    } else if input.any_just_pressed(down_left_keys) {
+        IVec2::new(-1, 1)
+    } else if input.any_just_pressed(down_right_keys) {
+        IVec2::new(1, 1)
+    } else if input.any_just_pressed(up_keys) {
+        IVec2::new(0, -1)
+    } else if input.any_just_pressed(down_keys) {
+        IVec2::new(0, 1)
+    } else if input.any_just_pressed(left_keys) {
+        IVec2::new(-1, 0)
+    } else if input.any_just_pressed(right_keys) {
+        IVec2::new(1, 0)
+    } else {
+        IVec2::ZERO
+    };
+
+    if dir != IVec2::ZERO {
+        let (_, mut position) = q_player.into_inner();
+        position.0 += dir;
     }
-    if input.just_pressed(KeyCode::ArrowLeft) {
-        dir.x -= 1;
-    }
-    if input.just_pressed(KeyCode::ArrowUp) {
-        dir.y -= 1;
-    }
-    if input.just_pressed(KeyCode::ArrowDown) {
-        dir.y += 1;
-    }
-    let (_, mut position) = q_player.into_inner();
-    position.x += dir.x;
-    position.y += dir.y;
 }

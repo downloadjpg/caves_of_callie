@@ -113,7 +113,7 @@ impl Map {
                     fg: tile.fg().into(),
                     bg: tile.bg().into(),
                 },
-                Position { x: pos.0, y: pos.1 },
+                Position(IVec2 { x: pos.0, y: pos.1 }),
             ));
         }
     }
