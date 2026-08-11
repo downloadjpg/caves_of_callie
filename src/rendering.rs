@@ -3,8 +3,8 @@ use bevy::prelude::*;
 use crate::FONT_SIZE;
 use crate::GRID_HEIGHT;
 use crate::GRID_WIDTH;
-use crate::Map;
 use crate::TILE_SIZE;
+use crate::map::Map;
 
 #[derive(Component)]
 pub struct GridCell {
@@ -17,7 +17,7 @@ pub fn setup_grid(mut commands: Commands, asset_server: Res<AssetServer>) {
     for y in 0..GRID_HEIGHT {
         for x in 0..GRID_WIDTH {
             commands.spawn((
-                Text2d::new(" "),
+                Text2d::new("p"),
                 TextFont {
                     font: font.clone().into(),
                     font_size: FONT_SIZE.into(),
@@ -36,10 +36,11 @@ pub fn setup_grid(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 pub fn render_map_system(
-    map: Res<Map>,
-    mut query: Query<(&GridCell, &mut Text2d, &mut TextColor)>,
+    map_query: Query<&mut Map>,
+    cell_query: Query<(&GridCell, &mut Text2d, &mut TextColor)>,
 ) {
-    for (cell, mut text, mut color) in &mut query {
+    let map = map_query.iter().next().expect("No map found for game!");
+    for (cell, mut text, mut color) in cell_query {
         if let Some(tile) = map.get(cell.x, cell.y) {
             *text = Text2d::new(tile.glyph());
             *color = TextColor(tile.color());
