@@ -92,7 +92,7 @@ impl Map {
         map
     }
 
-    pub fn draw(&self, mut term: Single<&mut Terminal>) {
+    pub fn draw(&self, term: &mut Terminal) {
         for (i, tile) in self.tiles.iter().enumerate() {
             let pos = self.pos(i);
             if let Some(term_tile) = term.try_tile_mut(pos.unwrap()) {

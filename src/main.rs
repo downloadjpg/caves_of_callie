@@ -3,6 +3,9 @@ use bevy_ascii_terminal::*;
 mod map;
 mod player;
 
+use map::*;
+use player::*;
+
 #[derive(Component)]
 struct Renderable {
     glyph: char,
@@ -21,12 +24,18 @@ impl From<&Position> for IVec2 {
     }
 }
 
+impl Default for Position {
+    fn default() -> Position {
+        Position { x: 0, y: 0 }
+    }
+}
+
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, TerminalPlugins))
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())
-        .add_systems(Update, (handle_input, draw_map))
+        .add_systems(Update, (handle_input, player_movement, draw))
         .run();
 }
 
@@ -36,14 +45,18 @@ fn setup(mut commands: Commands) {
     commands.spawn(TerminalCamera::new());
     // Create boxy level
     commands.spawn(map::Map::basic(25, 15));
+    // Spawn player
+    commands.spawn(player::Player::default());
 }
 
-fn draw_creatures(
+fn draw(
     mut term: Single<&mut Terminal>,
     q_map: Single<&map::Map>,
     q_renderables: Query<(&Renderable, &Position)>,
 ) {
-    // Draw the level terrain, then draw renderable entities
+    // Draw the level terrain
+    q_map.draw(&mut term);
+    // Draw renderable entities
     for (renderable, position) in q_renderables {
         if let Some(tile) = term.try_tile_mut(position) {
             tile.glyph = renderable.glyph;
@@ -51,10 +64,6 @@ fn draw_creatures(
             tile.fg_color = renderable.fg.into();
         }
     }
-    q_map.draw(term);
-}
-fn draw_map(mut term: Single<&mut Terminal>, q_map: Single<&map::Map>) {
-    q_map.draw(term);
 }
 
 fn handle_input(
@@ -72,4 +81,23 @@ fn handle_input(
             win.mode = WindowMode::BorderlessFullscreen(MonitorSelection::Current);
         }
     }
+}
+
+fn player_movement(input: Res<ButtonInput<KeyCode>>, q_player: Single<(&Player, &mut Position)>) {
+    let mut dir = IVec2::ZERO;
+    if input.just_pressed(KeyCode::ArrowRight) {
+        dir.x += 1;
+    }
+    if input.just_pressed(KeyCode::ArrowLeft) {
+        dir.x -= 1;
+    }
+    if input.just_pressed(KeyCode::ArrowUp) {
+        dir.y -= 1;
+    }
+    if input.just_pressed(KeyCode::ArrowDown) {
+        dir.y += 1;
+    }
+    let (_, mut position) = q_player.into_inner();
+    position.x += dir.x;
+    position.y += dir.y;
 }
