@@ -2,11 +2,6 @@ use bevy::prelude::*;
 mod map;
 mod rendering;
 
-const GRID_WIDTH: i32 = 40;
-const GRID_HEIGHT: i32 = 40;
-const TILE_SIZE: f32 = 20.0;
-const FONT_SIZE: f32 = 20.0;
-
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {

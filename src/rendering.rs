@@ -1,10 +1,10 @@
+use crate::map::Map;
 use bevy::prelude::*;
 
-use crate::FONT_SIZE;
-use crate::GRID_HEIGHT;
-use crate::GRID_WIDTH;
-use crate::TILE_SIZE;
-use crate::map::Map;
+const GRID_WIDTH: i32 = 40;
+const GRID_HEIGHT: i32 = 40;
+const TILE_SIZE: f32 = 20.0;
+const FONT_SIZE: f32 = 20.0;
 
 #[derive(Component)]
 pub struct GridCell {
