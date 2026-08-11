@@ -2,6 +2,8 @@ use crate::Position;
 use crate::Renderable;
 use bevy::color::palettes::basic;
 use bevy::prelude::*;
+use bevy_ascii_terminal::*;
+
 #[derive(Clone, Copy, PartialEq)]
 pub enum Tile {
     Floor,
@@ -89,19 +91,30 @@ impl Map {
 
         map
     }
-}
 
-pub fn spawn_tiles(mut commands: Commands, map: Map) {
-    for i in 0..(map.width * map.height) {
-        let pos = map.pos(i as usize).unwrap();
-        let tile = map.get(pos.0, pos.1).unwrap();
-        commands.spawn((
-            Renderable {
-                glyph: tile.glyph(),
-                fg: tile.fg().into(),
-                bg: tile.bg().into(),
-            },
-            Position { x: pos.0, y: pos.1 },
-        ));
+    pub fn draw(&self, mut term: Single<&mut Terminal>) {
+        for (i, tile) in self.tiles.iter().enumerate() {
+            let pos = self.pos(i);
+            if let Some(term_tile) = term.try_tile_mut(pos.unwrap()) {
+                term_tile.glyph = tile.glyph();
+                term_tile.fg_color = tile.fg().into();
+                term_tile.bg_color = tile.bg().into();
+            }
+        }
+    }
+
+    pub fn spawn_tiles(mut commands: Commands, map: Map) {
+        for i in 0..(map.width * map.height) {
+            let pos = map.pos(i as usize).unwrap();
+            let tile = map.get(pos.0, pos.1).unwrap();
+            commands.spawn((
+                Renderable {
+                    glyph: tile.glyph(),
+                    fg: tile.fg().into(),
+                    bg: tile.bg().into(),
+                },
+                Position { x: pos.0, y: pos.1 },
+            ));
+        }
     }
 }

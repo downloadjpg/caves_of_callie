@@ -26,24 +26,24 @@ fn main() {
         .add_plugins((DefaultPlugins, TerminalPlugins))
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())
-        .add_systems(Update, (handle_input, render))
+        .add_systems(Update, (handle_input, draw_map))
         .run();
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(
-        Terminal::new([110, 60])
-            .with_border(BoxStyle::SINGLE_LINE)
-            .with_string([0, 0], "HELLO!!!")
-            .with_string([10, 10], "BYE!!!"),
-    );
+    // Create a terminal and a camera
+    commands.spawn(Terminal::new([110, 60]).with_border(BoxStyle::SINGLE_LINE));
     commands.spawn(TerminalCamera::new());
     // Create boxy level
-    let level = map::Map::basic(25, 15);
-    map::spawn_tiles(commands, level);
+    commands.spawn(map::Map::basic(25, 15));
 }
 
-fn render(mut term: Single<&mut Terminal>, q_renderables: Query<(&Renderable, &Position)>) {
+fn draw_creatures(
+    mut term: Single<&mut Terminal>,
+    q_map: Single<&map::Map>,
+    q_renderables: Query<(&Renderable, &Position)>,
+) {
+    // Draw the level terrain, then draw renderable entities
     for (renderable, position) in q_renderables {
         if let Some(tile) = term.try_tile_mut(position) {
             tile.glyph = renderable.glyph;
@@ -51,6 +51,10 @@ fn render(mut term: Single<&mut Terminal>, q_renderables: Query<(&Renderable, &P
             tile.fg_color = renderable.fg.into();
         }
     }
+    q_map.draw(term);
+}
+fn draw_map(mut term: Single<&mut Terminal>, q_map: Single<&map::Map>) {
+    q_map.draw(term);
 }
 
 fn handle_input(
