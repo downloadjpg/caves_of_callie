@@ -21,7 +21,7 @@ impl Tile {
     }
 }
 
-#[derive(Resource)]
+#[derive(Component)]
 pub struct Map {
     width: i32,
     height: i32,

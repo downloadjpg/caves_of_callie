@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 mod map;
+mod player;
 mod rendering;
 
 fn main() {
