@@ -1,5 +1,5 @@
 use bevy::{prelude::*, window::WindowMode};
-use bevy_ascii_terminal::*;
+use bevy_ascii_terminal::{render::TerminalMeshTileScaling, *};
 mod components;
 mod map;
 mod player;
@@ -19,7 +19,12 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     // Create a terminal and a camera
-    commands.spawn(Terminal::new([110, 60]).with_border(BoxStyle::SINGLE_LINE));
+    commands.spawn((
+        Terminal::new([30, 40])
+            .with_border(BoxStyle::SINGLE_LINE)
+            .with_title("Caves of Callie"),
+        TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 }),
+    ));
     commands.spawn(TerminalCamera::new());
     // Create boxy level
     commands.spawn(map::Map::basic(25, 15));
@@ -63,7 +68,8 @@ fn handle_input(
 
 fn player_movement(
     input: Res<ButtonInput<KeyCode>>,
-    q_player: Single<(&Player, &mut Position)>,
+    player: Single<(&Player, &mut Position)>,
+    map: Single<&Map>,
     //q_creatures: Query<(&Creature, &Position), Without<Player>>,
 ) {
     // Cardinal directions: arrows + numpad
@@ -97,9 +103,17 @@ fn player_movement(
     } else {
         IVec2::ZERO
     };
-
-    if dir != IVec2::ZERO {
-        let (_, mut position) = q_player.into_inner();
-        position.0 += dir;
+    if dir == IVec2::ZERO {
+        return;
+    }
+    let (_, position) = player.into_inner();
+    let position = position.into_inner();
+    let new_pos = position.0 + dir;
+    match map.get(new_pos.x, new_pos.y) {
+        Some(map::Tile::Floor) => {
+            position.0 += dir;
+        }
+        Some(map::Tile::Wall) => {}
+        None => {}
     }
 }
