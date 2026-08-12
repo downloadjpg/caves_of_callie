@@ -1,10 +1,8 @@
-use crate::Position;
-use crate::Renderable;
 use bevy::color::palettes::basic;
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq)] // NOT a component!!!
 pub enum Tile {
     Floor,
     Wall,
@@ -40,6 +38,20 @@ pub struct Map {
 }
 
 impl Map {
+    pub fn new_empty(width: usize, height: usize) -> Map {
+        Map {
+            width: width as i32,
+            height: height as i32,
+            tiles: vec![Tile::Floor; width * height],
+        }
+    }
+    pub fn new_solid(width: usize, height: usize) -> Map {
+        Map {
+            width: width as i32,
+            height: height as i32,
+            tiles: vec![Tile::Wall; width * height],
+        }
+    }
     fn in_bounds(&self, x: i32, y: i32) -> bool {
         x >= 0 && x < self.width && y >= 0 && y < self.height
     }
@@ -72,25 +84,6 @@ impl Map {
         }
     }
 
-    pub fn basic(width: i32, height: i32) -> Map {
-        let mut map = Map {
-            width: width,
-            height: height,
-            tiles: vec![Tile::Floor; (width * height) as usize],
-        };
-
-        for x in 0..width {
-            map.set(x, 0, Tile::Wall);
-            map.set(x, height - 1, Tile::Wall);
-        }
-        for y in 0..height {
-            map.set(0, y, Tile::Wall);
-            map.set(width - 1, y, Tile::Wall);
-        }
-
-        map
-    }
-
     pub fn draw(&self, term: &mut Terminal) {
         for (i, tile) in self.tiles.iter().enumerate() {
             let pos = self.pos(i);
@@ -116,4 +109,28 @@ impl Map {
     //         ));
     //     }
     // }
+}
+
+pub struct MapBuilder {
+    map: Map,
+}
+impl MapBuilder {
+    pub fn new(width: usize, height: usize) -> MapBuilder {
+        MapBuilder {
+            map: Map::new_empty(width, height),
+        }
+    }
+
+    pub fn paint_rect(mut self, rect: IRect, tile: Tile) -> MapBuilder {
+        for y in rect.min.y..=rect.max.y {
+            for x in rect.min.x..=rect.max.x {
+                self.map.set(x, y, tile);
+            }
+        }
+        self
+    }
+
+    pub fn build(self) -> Map {
+        self.map
+    }
 }

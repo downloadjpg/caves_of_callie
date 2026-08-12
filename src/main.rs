@@ -27,7 +27,17 @@ fn setup(mut commands: Commands) {
     ));
     commands.spawn(TerminalCamera::new());
     // Create boxy level
-    commands.spawn(map::Map::basic(25, 15));
+    let map = map::MapBuilder::new(25, 15)
+        .paint_rect(
+            IRect::from_corners(IVec2::new(0, 0), IVec2::new(25, 15)),
+            map::Tile::Wall,
+        )
+        .paint_rect(
+            IRect::from_corners(IVec2::new(2, 2), IVec2::new(20, 10)),
+            map::Tile::Floor,
+        )
+        .build();
+    commands.spawn(map);
     // Spawn player
     commands.spawn(player::Player::default());
 }
