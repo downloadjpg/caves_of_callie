@@ -45,15 +45,14 @@ impl Map {
     }
 
     pub fn index(&self, x: i32, y: i32) -> Option<usize> {
-        if self.in_bounds(x, y) {
-            Some((y * self.width + x) as usize)
-        } else {
-            None
+        match self.in_bounds(x, y) {
+            true => Some((y * self.width + x) as usize),
+            false => None,
         }
     }
 
     pub fn pos(&self, index: usize) -> Option<(i32, i32)> {
-        if index < 0 || index >= self.tiles.len() {
+        if index >= self.tiles.len() {
             None
         } else {
             let x: i32 = index as i32 % self.width;
@@ -103,18 +102,18 @@ impl Map {
         }
     }
 
-    pub fn spawn_tiles(mut commands: Commands, map: Map) {
-        for i in 0..(map.width * map.height) {
-            let pos = map.pos(i as usize).unwrap();
-            let tile = map.get(pos.0, pos.1).unwrap();
-            commands.spawn((
-                Renderable {
-                    glyph: tile.glyph(),
-                    fg: tile.fg().into(),
-                    bg: tile.bg().into(),
-                },
-                Position(IVec2 { x: pos.0, y: pos.1 }),
-            ));
-        }
-    }
+    // pub fn spawn_tiles(mut commands: Commands, map: Map) {
+    //     for i in 0..(map.width * map.height) {
+    //         let pos = map.pos(i as usize).unwrap();
+    //         let tile = map.get(pos.0, pos.1).unwrap();
+    //         commands.spawn((
+    //             Renderable {
+    //                 glyph: tile.glyph(),
+    //                 fg: tile.fg().into(),
+    //                 bg: tile.bg().into(),
+    //             },
+    //             Position(IVec2 { x: pos.0, y: pos.1 }),
+    //         ));
+    //     }
+    // }
 }
