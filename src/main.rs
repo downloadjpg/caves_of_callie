@@ -1,32 +1,12 @@
 use bevy::{prelude::*, window::WindowMode};
 use bevy_ascii_terminal::*;
+mod components;
 mod map;
 mod player;
 
+use components::*;
 use map::*;
 use player::*;
-
-#[derive(Component)]
-struct Renderable {
-    glyph: char,
-    fg: Color,
-    bg: Color,
-}
-
-#[derive(Component, Clone, Copy)]
-struct Position(IVec2);
-
-impl Default for Position {
-    fn default() -> Position {
-        Position(IVec2::default())
-    }
-}
-
-impl From<Position> for IVec2 {
-    fn from(pos: Position) -> IVec2 {
-        pos.0
-    }
-}
 
 fn main() {
     App::new()
@@ -56,7 +36,7 @@ fn draw(
     q_map.draw(&mut term);
     // Draw renderable entities
     for (renderable, position) in q_renderables {
-        if let Some(tile) = term.try_tile_mut(*position) {
+        if let Some(tile) = term.try_tile_mut(position) {
             tile.glyph = renderable.glyph;
             tile.bg_color = renderable.bg.into();
             tile.fg_color = renderable.fg.into();
@@ -81,7 +61,11 @@ fn handle_input(
     }
 }
 
-fn player_movement(input: Res<ButtonInput<KeyCode>>, q_player: Single<(&Player, &mut Position)>) {
+fn player_movement(
+    input: Res<ButtonInput<KeyCode>>,
+    q_player: Single<(&Player, &mut Position)>,
+    //q_creatures: Query<(&Creature, &Position), Without<Player>>,
+) {
     // Cardinal directions: arrows + numpad
     let right_keys = [KeyCode::ArrowRight, KeyCode::Numpad6];
     let left_keys = [KeyCode::ArrowLeft, KeyCode::Numpad4];
