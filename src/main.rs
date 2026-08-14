@@ -8,6 +8,9 @@ use components::*;
 use map::*;
 use player::*;
 
+#[derive(Component)]
+struct MapDisplay;
+
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, TerminalPlugins))
@@ -20,10 +23,15 @@ fn main() {
 fn setup(mut commands: Commands) {
     // Create a terminal and a camera
     commands.spawn((
+        MapDisplay,
         Terminal::new([30, 40])
             .with_border(BoxStyle::SINGLE_LINE)
+            // .TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 })
             .with_title("Caves of Callie"),
-        // TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 }),
+    ));
+    commands.spawn((
+        Transform::from_xyz(30.0, 0.0, 0.0),
+        Terminal::new([20, 40]).with_border(BoxStyle::SINGLE_LINE),
     ));
     commands.spawn(TerminalCamera::new());
     // Create boxy level
@@ -45,12 +53,13 @@ fn setup(mut commands: Commands) {
 }
 
 fn draw(
-    mut term: Single<&mut Terminal>,
+    mut term: Single<(&MapDisplay, &mut Terminal)>,
     q_map: Single<&map::Map>,
     q_renderables: Query<(&Renderable, &Position)>,
 ) {
+    let term = &mut term.1;
     // Draw the level terrain
-    q_map.draw(&mut term);
+    q_map.draw(term);
     // Draw renderable entities
     for (renderable, position) in q_renderables {
         if let Some(tile) = term.try_tile_mut(position) {
