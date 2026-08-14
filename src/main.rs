@@ -23,7 +23,7 @@ fn setup(mut commands: Commands) {
         Terminal::new([30, 40])
             .with_border(BoxStyle::SINGLE_LINE)
             .with_title("Caves of Callie"),
-        TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 }),
+        // TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 }),
     ));
     commands.spawn(TerminalCamera::new());
     // Create boxy level
@@ -36,10 +36,12 @@ fn setup(mut commands: Commands) {
             IRect::from_corners(IVec2::new(2, 2), IVec2::new(20, 10)),
             map::Tile::Floor,
         )
+        .paint(IVec2 { x: 10, y: 10 }, map::Tile::ClosedDoor)
         .build();
     commands.spawn(map);
     // Spawn player
     commands.spawn(player::Player::default());
+    commands.spawn(components::Creature);
 }
 
 fn draw(
@@ -79,9 +81,32 @@ fn handle_input(
 fn player_movement(
     input: Res<ButtonInput<KeyCode>>,
     player: Single<(&Player, &mut Position)>,
-    map: Single<&Map>,
+    mut map: Single<&mut Map>,
     //q_creatures: Query<(&Creature, &Position), Without<Player>>,
 ) {
+    let dir = get_player_input(input);
+    if dir == IVec2::ZERO {
+        return;
+    }
+    let (_, position) = player.into_inner();
+    let position = position.into_inner();
+    let new_pos = position.0 + dir;
+    match map.get(new_pos.x, new_pos.y) {
+        Some(map::Tile::Floor) => {
+            position.0 += dir;
+        }
+        Some(map::Tile::Wall) => {}
+        Some(map::Tile::ClosedDoor) => {
+            map.set(new_pos.x, new_pos.y, map::Tile::OpenDoor);
+        }
+        Some(map::Tile::OpenDoor) => {
+            position.0 += dir;
+        }
+        None => {}
+    }
+}
+
+fn get_player_input(input: Res<ButtonInput<KeyCode>>) -> IVec2 {
     // Cardinal directions: arrows + numpad
     let right_keys = [KeyCode::ArrowRight, KeyCode::Numpad6];
     let left_keys = [KeyCode::ArrowLeft, KeyCode::Numpad4];
@@ -94,7 +119,7 @@ fn player_movement(
     let down_left_keys = [KeyCode::Numpad1];
     let down_right_keys = [KeyCode::Numpad3];
 
-    let dir = if input.any_just_pressed(up_left_keys) {
+    if input.any_just_pressed(up_left_keys) {
         IVec2::new(-1, -1)
     } else if input.any_just_pressed(up_right_keys) {
         IVec2::new(1, -1)
@@ -112,18 +137,5 @@ fn player_movement(
         IVec2::new(1, 0)
     } else {
         IVec2::ZERO
-    };
-    if dir == IVec2::ZERO {
-        return;
-    }
-    let (_, position) = player.into_inner();
-    let position = position.into_inner();
-    let new_pos = position.0 + dir;
-    match map.get(new_pos.x, new_pos.y) {
-        Some(map::Tile::Floor) => {
-            position.0 += dir;
-        }
-        Some(map::Tile::Wall) => {}
-        None => {}
     }
 }

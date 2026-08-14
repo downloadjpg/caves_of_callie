@@ -1,4 +1,4 @@
-use bevy::color::palettes::basic;
+use bevy::color::palettes::{self, basic};
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
@@ -6,6 +6,8 @@ use bevy_ascii_terminal::*;
 pub enum Tile {
     Floor,
     Wall,
+    OpenDoor,
+    ClosedDoor,
 }
 
 impl Tile {
@@ -13,6 +15,8 @@ impl Tile {
         match self {
             Tile::Floor => '.',
             Tile::Wall => '#',
+            Tile::OpenDoor => '▒',
+            Tile::ClosedDoor => '-',
         }
     }
 
@@ -20,12 +24,14 @@ impl Tile {
         match self {
             Tile::Floor => basic::GRAY.into(),
             Tile::Wall => basic::TEAL.into(),
+            Tile::OpenDoor | Tile::ClosedDoor => palettes::tailwind::AMBER_200.into(),
         }
     }
     pub fn bg(self) -> Color {
         match self {
             Tile::Floor => Color::BLACK,
             Tile::Wall => Color::BLACK,
+            Tile::OpenDoor | Tile::ClosedDoor => palettes::tailwind::GRAY_950.into(),
         }
     }
 }
@@ -128,6 +134,9 @@ impl MapBuilder {
             }
         }
         self
+    }
+    pub fn paint(mut self, pos: IVec2, tile: Tile) -> MapBuilder {
+        self.paint_rect(IRect { min: pos, max: pos }, tile)
     }
 
     pub fn build(self) -> Map {

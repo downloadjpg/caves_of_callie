@@ -1,4 +1,16 @@
 use bevy::prelude::*;
+
+#[derive(Component)]
+#[require(
+    crate::Position(IVec2 { x: 5, y: 5 }),
+    crate::Renderable {
+        glyph: 'M',
+        fg: bevy::color::palettes::css::PALE_GREEN.into(),
+        bg: Color::BLACK,
+    }
+)]
+pub struct Creature;
+
 #[derive(Component)]
 pub struct Renderable {
     pub glyph: char,
