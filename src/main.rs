@@ -1,4 +1,4 @@
-use bevy::{prelude::*, window::WindowMode};
+use bevy::{ecs::reflect::ReflectMessageFns, prelude::*, window::WindowMode};
 use bevy_ascii_terminal::{render::TerminalMeshTileScaling, *};
 mod components;
 mod map;
@@ -10,6 +10,28 @@ use player::*;
 
 #[derive(Component)]
 struct MapDisplay;
+
+#[derive(Component)]
+struct AnnouncementLog(Vec<String>);
+
+fn display_message(
+    announcement: On<Announcement>,
+    mut query: Single<(&mut Terminal, &mut AnnouncementLog)>,
+) {
+    let (mut term, mut log) = query.into_inner();
+    let mesasge_capacity = term.inner_size();
+    log.0.push(announcement.0.clone());
+    while log.0.len() > 10 {
+        log.0.remove(0);
+    }
+    let messages = log.0.join("\n");
+    term.clear();
+    term.put_border(BoxStyle::SINGLE_LINE);
+    term.put_string([0, 0], messages);
+}
+
+#[derive(Event)]
+struct Announcement(String);
 
 fn main() {
     App::new()
@@ -29,10 +51,13 @@ fn setup(mut commands: Commands) {
             // .TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 })
             .with_title("Caves of Callie"),
     ));
+    // Terminal for announcements/messages
     commands.spawn((
-        Transform::from_xyz(30.0, 0.0, 0.0),
+        AnnouncementLog(vec![String::from("first")]),
         Terminal::new([20, 40]).with_border(BoxStyle::SINGLE_LINE),
+        Transform::from_xyz(30.0, 0.0, 0.0),
     ));
+    commands.add_observer(display_message);
     commands.spawn(TerminalCamera::new());
     // Create boxy level
     let map = map::MapBuilder::new(25, 15)
@@ -50,6 +75,9 @@ fn setup(mut commands: Commands) {
     // Spawn player
     commands.spawn(player::Player::default());
     commands.spawn(components::Creature);
+    commands.trigger(Announcement(
+        "You see a giant huge frog or something!".into(),
+    ));
 }
 
 fn draw(
@@ -88,6 +116,7 @@ fn handle_input(
 }
 
 fn player_movement(
+    mut commands: Commands,
     input: Res<ButtonInput<KeyCode>>,
     player: Single<(&Player, &mut Position)>,
     mut map: Single<&mut Map>,
@@ -104,7 +133,9 @@ fn player_movement(
         Some(map::Tile::Floor) => {
             position.0 += dir;
         }
-        Some(map::Tile::Wall) => {}
+        Some(map::Tile::Wall) => {
+            commands.trigger(Announcement("There is a wall here.".into()));
+        }
         Some(map::Tile::ClosedDoor) => {
             map.set(new_pos.x, new_pos.y, map::Tile::OpenDoor);
         }
