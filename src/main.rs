@@ -120,7 +120,7 @@ fn player_movement(
     input: Res<ButtonInput<KeyCode>>,
     player: Single<(&Player, &mut Position)>,
     mut map: Single<&mut Map>,
-    //q_creatures: Query<(&Creature, &Position), Without<Player>>,
+    q_creatures: Query<(&Creature, &Position), Without<Player>>,
 ) {
     let dir = get_player_input(input);
     if dir == IVec2::ZERO {
@@ -129,6 +129,16 @@ fn player_movement(
     let (_, position) = player.into_inner();
     let position = position.into_inner();
     let new_pos = position.0 + dir;
+
+    // Check for creatures
+    for (creature, position) in q_creatures {
+        if position.0 == new_pos {
+            commands.trigger(Announcement("There's a creature!".into()));
+            return;
+        }
+    }
+
+    // Check availibility on the map
     match map.get(new_pos.x, new_pos.y) {
         Some(map::Tile::Floor) => {
             position.0 += dir;
