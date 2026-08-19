@@ -2,6 +2,9 @@ use bevy::color::palettes::{self, basic};
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
+#[derive(Component)]
+pub struct MapDisplay;
+
 #[derive(Clone, Copy, PartialEq)] // NOT a component!!!
 pub enum Tile {
     Floor,
