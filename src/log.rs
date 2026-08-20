@@ -5,7 +5,17 @@ use bevy_ascii_terminal::*;
 pub struct Announcement(pub String);
 
 #[derive(Component)]
+#[require(
+    Terminal = Terminal::new([20, 40]).with_border(BoxStyle::SINGLE_LINE),
+    Transform::from_xyz(30.0, 0.0, 0.0),
+)]
 pub struct AnnouncementLog(pub Vec<String>);
+
+impl Default for AnnouncementLog {
+    fn default() -> Self {
+        AnnouncementLog(Vec::new())
+    }
+}
 
 pub fn display_message(
     announcement: On<Announcement>,

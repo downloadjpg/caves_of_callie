@@ -20,19 +20,9 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     // Create a terminal and a camera
-    commands.spawn((
-        map::MapDisplay,
-        Terminal::new([30, 40])
-            .with_border(BoxStyle::SINGLE_LINE)
-            // .TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 })
-            .with_title("Caves of Callie"),
-    ));
+    commands.spawn(map::MapDisplay);
     // Terminal for announcements/messages
-    commands.spawn((
-        log::AnnouncementLog(vec![String::from("first")]),
-        Terminal::new([20, 40]).with_border(BoxStyle::SINGLE_LINE),
-        Transform::from_xyz(30.0, 0.0, 0.0),
-    ));
+    commands.spawn(log::AnnouncementLog::default());
     commands.add_observer(log::display_message);
     commands.spawn(TerminalCamera::new());
     // Create boxy level

@@ -3,6 +3,10 @@ use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
 #[derive(Component)]
+#[require(Terminal = Terminal::new([30, 40])
+    .with_border(BoxStyle::SINGLE_LINE)
+    // .TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 })
+    .with_title("Caves of Callie"))]
 pub struct MapDisplay;
 
 #[derive(Clone, Copy, PartialEq)] // NOT a component!!!
