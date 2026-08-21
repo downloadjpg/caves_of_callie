@@ -10,17 +10,17 @@ impl Plugin for TurnSystemPlugin {
         app.add_systems(PostUpdate, turn_end_system);
     }
 }
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct Actor;
 
-#[derive(Default, Component)]
+#[derive(Component, Default)]
 pub struct Energy(i32);
 
-#[derive(Default, Component)]
+#[derive(Component, Default)]
 pub struct Speed(i32);
 
 /// An actor is ready when their energy reaches/exceeds 100
-#[derive(Default, Component)]
+#[derive(Component, Default)]
 pub struct Ready;
 
 /// Progresses the energy of all waiting actors. Marks an actor as ready if their energy is at/above 100.
@@ -30,18 +30,18 @@ fn turn_begin_system(
     mut q_waiting_actors: Query<(Entity, &mut Energy, &Speed), (With<Actor>, Without<Ready>)>,
     q_ready_actors: Query<&Actor, With<Ready>>,
 ) {
-    // Don't do anything if there are ready actors.
-    if !q_ready_actors.is_empty() {
+    // Don't do anything if there are ready actors. Or no waiting actors.
+    if !q_ready_actors.is_empty() || q_waiting_actors.is_empty() {
         return;
     }
 
     // We want to wait as long as we need to for the next actor to be ready, so we loop.
-    let done = false;
+    let mut done = false;
     while !done {
         for (entity, mut energy, speed) in q_waiting_actors.iter_mut() {
             if energy.0 >= 100 {
                 commands.entity(entity).insert(Ready);
-                break;
+                done = true;
             }
             energy.0 += speed.0;
         }
