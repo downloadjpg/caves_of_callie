@@ -11,6 +11,7 @@ mod turn_system;
 use map::*;
 use movement::Position;
 
+use crate::log::AnnouncementLogPlugin;
 use crate::movement::MovementPlugin;
 use crate::player::PlayerPlugin;
 use crate::turn_system::TurnSystemPlugin;
@@ -18,7 +19,13 @@ use crate::turn_system::TurnSystemPlugin;
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, TerminalPlugins))
-        .add_plugins((TurnSystemPlugin, MapPlugin, MovementPlugin, PlayerPlugin))
+        .add_plugins((
+            TurnSystemPlugin,
+            MapPlugin,
+            MovementPlugin,
+            PlayerPlugin,
+            AnnouncementLogPlugin,
+        ))
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())
         .add_systems(Update, (system_input, draw))
@@ -26,9 +33,6 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    // Terminal for announcements/messages
-    commands.spawn(log::AnnouncementLog(vec![]));
-    commands.add_observer(log::display_message);
     // Create boxy level
 
     // Spawn player

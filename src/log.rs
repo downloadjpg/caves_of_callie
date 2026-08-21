@@ -1,23 +1,41 @@
+use crate::Map;
+use crate::turn_system::*;
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
+
+pub struct AnnouncementLogPlugin;
+
+impl Plugin for AnnouncementLogPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, |mut commands: Commands| {
+            commands.spawn(AnnouncementLog::default());
+        });
+        app.add_systems(Update, announce_actions);
+        app.add_observer(display_message);
+    }
+}
 
 #[derive(Event)]
 pub struct Announcement(pub String);
 
-#[derive(Component)]
+impl From<String> for Announcement {
+    fn from(value: String) -> Self {
+        Announcement(value.into())
+    }
+}
+
+pub fn announcement(msg: impl Into<String>) -> Announcement {
+    Announcement(msg.into())
+}
+
+#[derive(Component, Default)]
 #[require(
     Terminal = Terminal::new([20, 40]).with_border(BoxStyle::SINGLE_LINE),
     Transform::from_xyz(30.0, 0.0, 0.0),
 )]
-pub struct AnnouncementLog(pub Vec<String>);
+struct AnnouncementLog(pub Vec<String>);
 
-impl Default for AnnouncementLog {
-    fn default() -> Self {
-        AnnouncementLog(Vec::new())
-    }
-}
-
-pub fn display_message(
+fn display_message(
     announcement: On<Announcement>,
     query: Single<(&mut Terminal, &mut AnnouncementLog)>,
 ) {
@@ -33,6 +51,22 @@ pub fn display_message(
     term.put_string([0, 0], messages);
 }
 
-pub fn announcement(msg: impl Into<String>) -> Announcement {
-    Announcement(msg.into())
+fn announce_actions(
+    mut commands: Commands,
+    mut msg: MessageReader<ActionPerformed>,
+    map: Single<&Map>,
+) {
+    for performance in msg.read() {
+        let entity = performance.entity;
+        let action = performance.action;
+
+        match action {
+            Action::Move { new_pos } => {
+                if !map.is_walkable(new_pos) {
+                    commands.trigger(announcement("A wall!"))
+                }
+            }
+            _ => {}
+        }
+    }
 }

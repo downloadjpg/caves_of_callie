@@ -1,4 +1,3 @@
-use crate::movement::Position;
 use bevy::prelude::*;
 /// Plugin for managing turns and turn order.
 /// One actor takes a turn every Update loop.
@@ -69,7 +68,7 @@ pub struct ActionPerformed {
 
 /// Progresses the energy of all waiting actors. Marks an actor as ready if their energy is at/above 100.
 /// This *should* mean only one actor is ever ready per Update. Not sure if that's important or performant.
-/// TODO: Turn this into a batch system, so all ready actors are executed together with order based on speed.
+/// TODO: Consider turning this into a batch system, so all ready actors are executed together with order based on speed.
 fn begin_turn(
     mut commands: Commands,
     mut q_waiting_actors: Query<(Entity, &mut Energy, &Speed), (With<Actor>, Without<Ready>)>,
@@ -96,6 +95,8 @@ fn begin_turn(
     }
 }
 
+/// Won't progress to the resolution phase (via message) until the readied actor has decided their next action.
+/// Game pauses while you think!
 fn execute_action(
     mut q_actors: Query<(Entity, &mut NextAction, &mut Energy), With<Ready>>,
     mut writer: MessageWriter<ActionPerformed>,

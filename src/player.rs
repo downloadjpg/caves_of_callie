@@ -6,7 +6,7 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, decide_player_move.in_set(TurnSet::Decide));
+        app.add_systems(Update, decide_player_action.in_set(TurnSet::Decide));
     }
 }
 
@@ -22,41 +22,7 @@ impl Plugin for PlayerPlugin {
 )]
 pub struct Player;
 
-// pub fn player_movement(
-//     mut commands: Commands,
-//     input: Res<ButtonInput<KeyCode>>,
-//     player: Single<(&Player, &mut Position)>,
-//     mut map: Single<&mut Map>,
-//     q_creatures: Query<(&Actor, &Position), Without<Player>>,
-// ) {
-
-//     // Check for actors
-//     for (_, position) in q_creatures {
-//         if position.0 == new_pos {
-//             commands.trigger(announcement("There's a creature!"));
-//             return;
-//         }
-//     }
-
-//     // Check availibility on the map
-//     match map.get(new_pos.x, new_pos.y) {
-//         Some(Tile::Floor) => {
-//             position.0 += dir;
-//         }
-//         Some(Tile::Wall) => {
-//             commands.trigger(announcement("There is a wall here."));
-//         }
-//         Some(Tile::ClosedDoor) => {
-//             map.set(new_pos.x, new_pos.y, Tile::OpenDoor);
-//         }
-//         Some(Tile::OpenDoor) => {
-//             position.0 += dir;
-//         }
-//         None => {}
-//     }
-// }
-
-fn decide_player_move(
+fn decide_player_action(
     input: Res<ButtonInput<KeyCode>>,
     q_player: Single<(&mut NextAction, &Position), With<Player>>,
 ) {
