@@ -1,18 +1,19 @@
 use bevy::{prelude::*, window::WindowMode};
 use bevy_ascii_terminal::*;
-
 #[allow(dead_code)]
+mod ai;
 mod log;
 mod map;
+mod monster;
 mod movement;
 mod player;
 mod turn_system;
-mod monster;
 
 use map::*;
 use movement::Position;
 
 use crate::log::AnnouncementLogPlugin;
+use crate::monster::MonsterPlugin;
 use crate::movement::MovementPlugin;
 use crate::player::PlayerPlugin;
 use crate::turn_system::TurnSystemPlugin;
@@ -26,7 +27,7 @@ fn main() {
             MovementPlugin,
             PlayerPlugin,
             AnnouncementLogPlugin,
-            MonsterPlugin
+            MonsterPlugin,
         ))
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())
@@ -35,13 +36,12 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    // Create boxy level
-
     // Spawn player
     commands.spawn(player::Player::default());
+    monster::spawn_orc(commands, IVec2::new(5, 8));
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct Renderable {
     pub glyph: char,
     pub fg: Color,

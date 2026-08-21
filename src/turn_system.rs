@@ -33,7 +33,7 @@ pub struct Actor;
 pub struct Energy(i32);
 
 #[derive(Component)]
-pub struct Speed(i32);
+pub struct Speed(pub i32);
 impl Default for Speed {
     fn default() -> Self {
         Speed(10)
