@@ -38,7 +38,8 @@ fn main() {
 fn setup(mut commands: Commands) {
     // Spawn player
     commands.spawn(player::Player::default());
-    monster::spawn_orc(commands, IVec2::new(5, 8));
+    commands.spawn((monster::Orc, Position([5, 5].into())));
+    commands.spawn((monster::Orc, Position([2, 5].into())));
 }
 
 #[derive(Component, Default)]

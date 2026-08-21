@@ -9,7 +9,7 @@ impl Plugin for MonsterPlugin {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct Monster;
 
 fn decide_monster_action(mut q_monster: Query<(&mut NextAction, &Position), With<Monster>>) {
@@ -20,16 +20,16 @@ fn decide_monster_action(mut q_monster: Query<(&mut NextAction, &Position), With
     }
 }
 
-pub fn spawn_orc(mut commands: Commands, pos: IVec2) {
-    commands.spawn((
-        Monster,
-        Renderable {
-            glyph: 'O',
-            fg: Color::linear_rgb(1.0, 0.0, 0.0),
-            bg: Color::BLACK,
-        },
-        Position(pos),
-        Actor,
-        Speed(5),
-    ));
-}
+#[derive(Component, Default)]
+#[require(
+    Monster,
+    Renderable {
+        glyph: 'O',
+        fg: Color::linear_rgb(1.0, 0.0, 0.0),
+        bg: Color::BLACK,
+    },
+    Position,
+    Actor,
+    Speed(5),
+)]
+pub struct Orc;
