@@ -32,7 +32,7 @@ fn decide_player_action(
         None
     } else {
         Some(Action::Move {
-            new_pos: dir + position.0,
+            target: dir + position.0,
         })
     };
     next_action.0 = action;

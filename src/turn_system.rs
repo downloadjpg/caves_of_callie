@@ -48,9 +48,9 @@ pub struct NextAction(pub Option<Action>);
 
 #[derive(Clone, Copy, Debug)]
 pub enum Action {
-    Move { new_pos: IVec2 },
-    OpenDoor { dir: IVec2 },
-    CloseDoor { dir: IVec2 },
+    Move { target: IVec2 },
+    OpenDoor { target: IVec2 },
+    CloseDoor { target: IVec2 },
 }
 
 impl Action {

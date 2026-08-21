@@ -7,6 +7,7 @@ mod map;
 mod movement;
 mod player;
 mod turn_system;
+mod monster;
 
 use map::*;
 use movement::Position;
@@ -25,6 +26,7 @@ fn main() {
             MovementPlugin,
             PlayerPlugin,
             AnnouncementLogPlugin,
+            MonsterPlugin
         ))
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())

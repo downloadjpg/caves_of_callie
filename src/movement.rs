@@ -30,7 +30,7 @@ fn apply_move(
     mut q_actors: Query<(Entity, &mut Position), With<Actor>>,
 ) {
     for &ActionPerformed { entity, action } in reader.read() {
-        let Action::Move { new_pos } = action else {
+        let Action::Move { target: new_pos } = action else {
             continue; // not a move action, some other Resolve system handles it
         };
         if !map.is_walkable(new_pos) {

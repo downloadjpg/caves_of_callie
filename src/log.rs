@@ -61,7 +61,7 @@ fn announce_actions(
         let action = performance.action;
 
         match action {
-            Action::Move { new_pos } => {
+            Action::Move { target: new_pos } => {
                 if !map.is_walkable(new_pos) {
                     commands.trigger(announcement("A wall!"))
                 }
