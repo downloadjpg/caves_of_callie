@@ -2,6 +2,34 @@ use bevy::color::palettes::{self, basic};
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
+pub struct MapPlugin;
+
+impl Plugin for MapPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, (setup_display, spawn_map).chain());
+    }
+}
+
+fn setup_display(mut commands: Commands) {
+    commands.spawn(MapDisplay);
+    commands.spawn(TerminalCamera::new());
+}
+
+fn spawn_map(mut commands: Commands) {
+    let map = MapBuilder::new(25, 15)
+        .paint_rect(
+            IRect::from_corners(IVec2::new(0, 0), IVec2::new(25, 15)),
+            Tile::Wall,
+        )
+        .paint_rect(
+            IRect::from_corners(IVec2::new(2, 2), IVec2::new(20, 10)),
+            Tile::Floor,
+        )
+        .paint(IVec2 { x: 10, y: 10 }, Tile::ClosedDoor)
+        .build();
+    commands.spawn(map);
+}
+
 #[derive(Component)]
 #[require(Terminal = Terminal::new([30, 40])
     .with_border(BoxStyle::SINGLE_LINE)
@@ -105,6 +133,13 @@ impl Map {
                 term_tile.fg_color = tile.fg().into();
                 term_tile.bg_color = tile.bg().into();
             }
+        }
+    }
+
+    pub fn is_walkable(&self, pos: IVec2) -> bool {
+        match self.get(pos.x, pos.y) {
+            Some(Tile::Floor | Tile::OpenDoor) => true,
+            _ => false,
         }
     }
 

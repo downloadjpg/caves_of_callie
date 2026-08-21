@@ -1,46 +1,45 @@
 use bevy::{prelude::*, window::WindowMode};
 use bevy_ascii_terminal::*;
-mod components;
+
+#[allow(dead_code)]
 mod log;
 mod map;
+mod movement;
 mod player;
+mod turn_system;
 
-use components::*;
 use map::*;
-use player::*;
+use movement::Position;
+
+use crate::movement::MovementPlugin;
+use crate::player::PlayerPlugin;
+use crate::turn_system::TurnSystemPlugin;
 
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, TerminalPlugins))
+        .add_plugins((TurnSystemPlugin, MapPlugin, MovementPlugin, PlayerPlugin))
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())
-        .add_systems(Update, (system_input, player::player_movement, draw))
+        .add_systems(Update, (system_input, draw))
         .run();
 }
 
 fn setup(mut commands: Commands) {
-    // Create a terminal and a camera
-    commands.spawn(map::MapDisplay);
     // Terminal for announcements/messages
-    commands.spawn(log::AnnouncementLog::default());
+    commands.spawn(log::AnnouncementLog(vec![]));
     commands.add_observer(log::display_message);
-    commands.spawn(TerminalCamera::new());
     // Create boxy level
-    let map = map::MapBuilder::new(25, 15)
-        .paint_rect(
-            IRect::from_corners(IVec2::new(0, 0), IVec2::new(25, 15)),
-            map::Tile::Wall,
-        )
-        .paint_rect(
-            IRect::from_corners(IVec2::new(2, 2), IVec2::new(20, 10)),
-            map::Tile::Floor,
-        )
-        .paint(IVec2 { x: 10, y: 10 }, map::Tile::ClosedDoor)
-        .build();
-    commands.spawn(map);
+
     // Spawn player
     commands.spawn(player::Player::default());
-    commands.spawn(components::Creature);
+}
+
+#[derive(Component)]
+pub struct Renderable {
+    pub glyph: char,
+    pub fg: Color,
+    pub bg: Color,
 }
 
 fn draw(
@@ -53,7 +52,7 @@ fn draw(
     q_map.draw(term);
     // Draw renderable entities
     for (renderable, position) in q_renderables {
-        if let Some(tile) = term.try_tile_mut(position) {
+        if let Some(tile) = term.try_tile_mut(position.0) {
             tile.glyph = renderable.glyph;
             tile.bg_color = renderable.bg.into();
             tile.fg_color = renderable.fg.into();
