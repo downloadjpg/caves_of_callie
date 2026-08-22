@@ -12,8 +12,8 @@ mod turn_system;
 use map::*;
 use movement::Position;
 
+use crate::ai::AiPlugin;
 use crate::log::AnnouncementLogPlugin;
-use crate::monster::MonsterPlugin;
 use crate::movement::MovementPlugin;
 use crate::player::PlayerPlugin;
 use crate::turn_system::TurnSystemPlugin;
@@ -27,7 +27,7 @@ fn main() {
             MovementPlugin,
             PlayerPlugin,
             AnnouncementLogPlugin,
-            MonsterPlugin,
+            AiPlugin,
         ))
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())

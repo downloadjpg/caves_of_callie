@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 /// Plugin for managing turns and turn order.
-/// One actor takes a turn every Update loop.
+/// To hook in, add systems to the decide and resolve system sets.
 /// Adapted from https://github.com/sarkahn/bevy_roguelike/blob/main/src/turn_system.rs
 
 pub struct TurnSystemPlugin;
@@ -43,6 +43,8 @@ impl Default for Speed {
 #[derive(Component, Default, Debug)]
 pub struct Ready;
 
+/// None represents an actor that hasn't made up its mind yet.
+/// If this is a player... that's fine.
 #[derive(Component, Clone, Copy, Default)]
 pub struct NextAction(pub Option<Action>);
 
@@ -51,6 +53,7 @@ pub enum Action {
     Move { target: IVec2 },
     OpenDoor { target: IVec2 },
     CloseDoor { target: IVec2 },
+    Wait,
 }
 
 impl Action {
@@ -80,6 +83,7 @@ fn begin_turn(
     }
 
     // We want to wait as long as we need to for the next actor to be ready, so we loop.
+    // TODO: Safety valve for actors not having enough speed...
     let mut done = false;
     let max_iter = 100;
     let mut iter = 0;

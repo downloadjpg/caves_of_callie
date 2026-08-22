@@ -1,25 +1,11 @@
 use super::*;
+use crate::ai::*;
 use crate::turn_system::*;
 use bevy::{prelude::*, render::RenderSystems::Render};
-pub struct MonsterPlugin;
-
-impl Plugin for MonsterPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Update, decide_monster_action.in_set(TurnSet::Decide));
-    }
-}
 
 #[derive(Component, Default)]
+
 pub struct Monster;
-
-fn decide_monster_action(mut q_monster: Query<(&mut NextAction, &Position), With<Monster>>) {
-    for (mut next_action, position) in q_monster.iter_mut() {
-        next_action.0 = Some(Action::Move {
-            target: (IVec2::new(1, 0) + position.0),
-        });
-    }
-}
-
 #[derive(Component, Default)]
 #[require(
     Monster,
@@ -30,6 +16,7 @@ fn decide_monster_action(mut q_monster: Query<(&mut NextAction, &Position), With
     },
     Position,
     Actor,
+    AiBehavior::Wander,
     Speed(5),
 )]
 pub struct Orc;
