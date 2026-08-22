@@ -21,8 +21,8 @@ impl Plugin for TurnSystemPlugin {
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TurnSet {
     Decide,  // Any AI systems. Sets the NextAction component
-    Execute, // Don't add anything here. Systems involving an action use ActionPerformed message reader.
-    Resolve, // Any passive system, like poison or light.
+    Execute, // Don't add anything here.
+    Resolve, // Any passive system or effect.
 }
 
 #[derive(Component, Default, Debug)]
