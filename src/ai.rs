@@ -22,10 +22,10 @@ pub enum AiBehavior {
 // cute idea, have next action be private and create a setter function to handle invariance.
 fn ai_decide(
     mut q_ai: Query<(Entity, &AiBehavior, &Position, &mut NextAction), With<Ready>>,
-    player_pos: Single<&Position, With<Player>>,
+    player_pos: Query<&Position, With<Player>>,
     map: Single<&Map>,
 ) {
-    let player_pos = player_pos.into_inner();
+    let player_pos = player_pos.iter().next();
     for (entity, behavior, pos, mut next_action) in q_ai.iter_mut() {
         next_action.0 = match behavior {
             AiBehavior::Wander => Some(decide_wander(pos.0)),

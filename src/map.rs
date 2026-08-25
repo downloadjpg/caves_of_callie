@@ -1,3 +1,4 @@
+use crate::display::MapDisplay;
 use bevy::color::palettes::{self, basic};
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
@@ -6,13 +7,8 @@ pub struct MapPlugin;
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (setup_display, spawn_map).chain());
+        app.add_systems(Startup, (spawn_map).chain());
     }
-}
-
-fn setup_display(mut commands: Commands) {
-    commands.spawn(MapDisplay);
-    commands.spawn(TerminalCamera::new());
 }
 
 fn spawn_map(mut commands: Commands) {
@@ -30,14 +26,7 @@ fn spawn_map(mut commands: Commands) {
     commands.spawn(map);
 }
 
-#[derive(Component)]
-#[require(Terminal = Terminal::new([30, 40])
-    .with_border(BoxStyle::SINGLE_LINE)
-    // .TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 })
-    .with_title("Caves of Callie"))]
-pub struct MapDisplay;
-
-#[derive(Clone, Copy, PartialEq)] // NOT a component!!!
+#[derive(Clone, Copy, PartialEq)]
 pub enum Tile {
     Floor,
     Wall,

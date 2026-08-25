@@ -1,6 +1,9 @@
 use crate::Position;
+use crate::display::Renderable;
 use crate::turn_system::*;
 use bevy::prelude::*;
+
+mod commands;
 
 pub struct PlayerPlugin;
 
@@ -14,12 +17,13 @@ impl Plugin for PlayerPlugin {
 #[require(
     Actor,
     Position(IVec2 { x: 5, y: 5 }),
-    crate::Renderable {
+    Renderable {
         glyph: '@',
-        fg: Color::WHITE,
-        bg: Color::BLACK,
+        fg: Color::WHITE.into(),
+        bg: Color::BLACK.into(),
     }
 )]
+
 pub struct Player;
 
 fn decide_player_action(

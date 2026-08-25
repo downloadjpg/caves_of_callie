@@ -2,6 +2,7 @@ use bevy::{prelude::*, window::WindowMode};
 use bevy_ascii_terminal::*;
 #[allow(dead_code)]
 mod ai;
+mod display;
 mod log;
 mod map;
 mod monster;
@@ -13,6 +14,7 @@ use map::*;
 use movement::Position;
 
 use crate::ai::AiPlugin;
+use crate::display::DisplayPlugin;
 use crate::log::AnnouncementLogPlugin;
 use crate::movement::MovementPlugin;
 use crate::player::PlayerPlugin;
@@ -24,6 +26,7 @@ fn main() {
         .add_plugins((
             TurnSystemPlugin,
             MapPlugin,
+            DisplayPlugin,
             MovementPlugin,
             PlayerPlugin,
             AnnouncementLogPlugin,
@@ -31,7 +34,7 @@ fn main() {
         ))
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())
-        .add_systems(Update, (system_input, draw))
+        .add_systems(Update, system_input)
         .run();
 }
 
@@ -40,31 +43,6 @@ fn setup(mut commands: Commands) {
     commands.spawn(player::Player::default());
     commands.spawn((monster::Orc, Position([5, 5].into())));
     commands.spawn((monster::Orc, Position([2, 5].into())));
-}
-
-#[derive(Component, Default)]
-pub struct Renderable {
-    pub glyph: char,
-    pub fg: Color,
-    pub bg: Color,
-}
-
-fn draw(
-    mut term: Single<(&MapDisplay, &mut Terminal)>,
-    q_map: Single<&map::Map>,
-    q_renderables: Query<(&Renderable, &Position)>,
-) {
-    let term = &mut term.1;
-    // Draw the level terrain
-    q_map.draw(term);
-    // Draw renderable entities
-    for (renderable, position) in q_renderables {
-        if let Some(tile) = term.try_tile_mut(position.0) {
-            tile.glyph = renderable.glyph;
-            tile.bg_color = renderable.bg.into();
-            tile.fg_color = renderable.fg.into();
-        }
-    }
 }
 
 fn system_input(
