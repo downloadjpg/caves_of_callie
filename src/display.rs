@@ -8,7 +8,7 @@ pub struct DisplayPlugin;
 impl Plugin for DisplayPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, draw);
-        app.add_systems(Startup, setup_display);
+        app.add_systems(Startup, startup);
     }
 }
 
@@ -22,14 +22,7 @@ pub struct Renderable {
     pub bg: LinearRgba,
 }
 
-fn setup_display(mut commands: Commands) {
-    commands.spawn((
-        MapDisplay,
-        Terminal::new([30, 40])
-            .with_border(BoxStyle::SINGLE_LINE)
-            // .TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 })
-            .with_title("Caves of Callie"),
-    ));
+fn startup(mut commands: Commands) {
     commands.spawn(TerminalCamera::new());
 }
 

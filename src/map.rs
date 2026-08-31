@@ -7,11 +7,11 @@ pub struct MapPlugin;
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (spawn_map).chain());
+        app.add_systems(Startup, startup);
     }
 }
 
-fn spawn_map(mut commands: Commands) {
+fn startup(mut commands: Commands) {
     let map = MapBuilder::new(25, 15)
         .paint_rect(
             IRect::from_corners(IVec2::new(0, 0), IVec2::new(25, 15)),
@@ -24,6 +24,13 @@ fn spawn_map(mut commands: Commands) {
         .paint(IVec2 { x: 10, y: 10 }, Tile::ClosedDoor)
         .build();
     commands.spawn(map);
+    commands.spawn((
+        MapDisplay,
+        Terminal::new([30, 40])
+            .with_border(BoxStyle::SINGLE_LINE)
+            // .TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 })
+            .with_title("Caves of Callie"),
+    ));
 }
 
 #[derive(Clone, Copy, PartialEq)]
