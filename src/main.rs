@@ -1,26 +1,22 @@
 use bevy::{prelude::*, window::WindowMode};
 use bevy_ascii_terminal::*;
-#[allow(dead_code)]
-mod ai;
-mod combat;
+
+use crate::{
+    core::{
+        ai::AiPlugin,
+        combat::CombatPlugin,
+        components::Position,
+        log::AnnouncementLogPlugin,
+        map::MapPlugin,
+        monster,
+        movement::MovementPlugin,
+        player::{self, PlayerPlugin},
+        turn_system::TurnSystemPlugin,
+    },
+    display::DisplayPlugin,
+};
+mod core;
 mod display;
-mod log;
-mod map;
-mod monster;
-mod movement;
-mod player;
-mod turn_system;
-
-use map::*;
-use movement::Position;
-
-use crate::ai::AiPlugin;
-use crate::combat::CombatPlugin;
-use crate::display::DisplayPlugin;
-use crate::log::AnnouncementLogPlugin;
-use crate::movement::MovementPlugin;
-use crate::player::PlayerPlugin;
-use crate::turn_system::TurnSystemPlugin;
 
 fn main() {
     App::new()

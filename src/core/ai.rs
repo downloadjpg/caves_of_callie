@@ -1,7 +1,6 @@
-use crate::Position;
-use crate::turn_system::*;
+use crate::core::components::Position;
+use crate::core::turn_system::*;
 use bevy::prelude::*;
-
 pub struct AiPlugin;
 
 impl Plugin for AiPlugin {

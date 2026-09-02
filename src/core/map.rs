@@ -1,4 +1,3 @@
-use crate::display::MapDisplay;
 use bevy::color::palettes::{self, basic};
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
@@ -25,7 +24,7 @@ fn startup(mut commands: Commands) {
         .build();
     commands.spawn(map);
     commands.spawn((
-        MapDisplay,
+        crate::display::MapDisplay,
         Terminal::new([30, 40])
             .with_border(BoxStyle::SINGLE_LINE)
             // .TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 })

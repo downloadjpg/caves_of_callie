@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::core::monster::{Health, Stats};
+
 /*
 app.add_systems(Update, (
     resolve_attacks,      // AttackEvent -> compute hit/miss/damage -> DamageEvent
@@ -35,11 +37,9 @@ struct DeathMessage {
     entity: Entity,
 }
 
-fn resolve_attacks(mut attacks: MessageReader<AttackMessage>, mut commands: Commands) {
-    for msg in attacks.read() {
-        commands.trigger(crate::log::announcement(format!(
-            "{} hit {}!",
-            msg.attacker, msg.target
-        )));
-    }
+fn resolve_attacks(
+    mut attacks: MessageReader<AttackMessage>,
+    mut _combatants: Query<(Entity, &mut Health, &Stats)>,
+) {
+    for _msg in attacks.read() {}
 }

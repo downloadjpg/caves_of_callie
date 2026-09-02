@@ -1,5 +1,4 @@
-use crate::Map;
-use crate::movement::MoveMessage;
+use crate::core::{combat::AttackMessage, map::Map, movement::MoveMessage};
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
@@ -10,7 +9,7 @@ impl Plugin for AnnouncementLogPlugin {
         app.add_systems(Startup, |mut commands: Commands| {
             commands.spawn(AnnouncementLog::default());
         });
-        app.add_systems(Update, announce_wall_bumps);
+        app.add_systems(Update, (announce_wall_bumps, announce_attacks));
         app.add_observer(display_message);
     }
 }
@@ -80,5 +79,14 @@ fn announce_wall_bumps(
         if !map.is_walkable(*new_pos) {
             commands.trigger(announcement("A wall!"));
         }
+    }
+}
+
+fn announce_attacks(mut attacks: MessageReader<AttackMessage>, mut commands: Commands) {
+    for msg in attacks.read() {
+        commands.trigger(announcement(format!(
+            "{} hit {}!",
+            msg.attacker, msg.target
+        )));
     }
 }

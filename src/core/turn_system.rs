@@ -1,6 +1,4 @@
-use crate::Position;
-use crate::combat::AttackMessage;
-use crate::movement::MoveMessage;
+use crate::core::{combat::AttackMessage, components::Position, movement::MoveMessage};
 use bevy::prelude::*;
 /// Plugin for managing turns and turn order.
 /// To hook in, add systems to the decide and resolve system sets.

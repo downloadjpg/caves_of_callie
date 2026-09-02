@@ -1,5 +1,5 @@
-use crate::map::*;
-use crate::movement::Position;
+use crate::core::components::{Position, Renderable};
+use crate::core::map::*;
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
@@ -14,13 +14,6 @@ impl Plugin for DisplayPlugin {
 
 #[derive(Component)]
 pub struct MapDisplay;
-
-#[derive(Component, Default)]
-pub struct Renderable {
-    pub glyph: char,
-    pub fg: LinearRgba,
-    pub bg: LinearRgba,
-}
 
 fn startup(mut commands: Commands) {
     commands.spawn(TerminalCamera::new());

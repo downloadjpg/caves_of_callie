@@ -1,7 +1,5 @@
-use super::*;
-use crate::ai::*;
-use crate::display::Renderable;
-use crate::turn_system::*;
+use crate::core::{ai::*, components::*, turn_system::*};
+use bevy::prelude::*;
 
 #[derive(Component, Default)]
 pub struct Monster;
@@ -26,8 +24,10 @@ pub struct Orc;
 #[derive(Component, Default)]
 pub struct Name(String);
 
-#[allow(dead_code)]
 #[derive(Component, Default)]
 pub struct Stats {
     attack: i32,
 }
+
+#[derive(Component, Default)]
+pub struct Health(i32);

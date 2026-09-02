@@ -1,5 +1,8 @@
-use crate::Map;
-use crate::turn_system::*;
+use crate::core::{
+    components::Position,
+    map::Map,
+    turn_system::{Actor, TurnSet},
+};
 use bevy::prelude::*;
 pub struct MovementPlugin;
 
@@ -11,21 +14,6 @@ impl Plugin for MovementPlugin {
 
 #[derive(Message)]
 pub struct MoveMessage(pub Entity, pub IVec2);
-
-#[derive(Component, Clone, Copy, Default, Debug)]
-pub struct Position(pub IVec2);
-
-impl From<[i32; 2]> for Position {
-    fn from(p: [i32; 2]) -> Self {
-        Position(IVec2::from(p))
-    }
-}
-
-impl From<IVec2> for Position {
-    fn from(v: IVec2) -> Self {
-        Position(v.into())
-    }
-}
 
 fn apply_move(
     mut reader: MessageReader<MoveMessage>,

@@ -1,6 +1,3 @@
-use super::get_input_direction;
-use crate::color;
-use crate::{Position, display::*, player::Player};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 const LOOK_KEY: KeyCode = KeyCode::Semicolon;
 pub struct PlayerCommandsPlugin;
