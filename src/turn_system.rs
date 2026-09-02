@@ -1,3 +1,6 @@
+use crate::Position;
+use crate::combat::AttackMessage;
+use crate::movement::MoveMessage;
 use bevy::prelude::*;
 /// Plugin for managing turns and turn order.
 /// To hook in, add systems to the decide and resolve system sets.
@@ -7,26 +10,32 @@ pub struct TurnSystemPlugin;
 
 impl Plugin for TurnSystemPlugin {
     fn build(&self, app: &mut App) {
-        app.add_message::<ActionPerformed>();
+        app.add_message::<MoveMessage>();
+        app.add_message::<AttackMessage>();
         app.configure_sets(
             Update,
-            (TurnSet::Decide, TurnSet::Execute, TurnSet::Resolve).chain(),
+            (
+                TurnSet::DetermineIntent,
+                TurnSet::ResolveIntent,
+                TurnSet::Resolution,
+            )
+                .chain(),
         );
         app.add_systems(PreUpdate, begin_turn);
-        app.add_systems(Update, (execute_action).in_set(TurnSet::Execute));
+        app.add_systems(Update, (resolve_intent).in_set(TurnSet::ResolveIntent));
         app.add_systems(PostUpdate, end_turn);
     }
 }
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TurnSet {
-    Decide,  // Any AI systems. Sets the NextAction component
-    Execute, // Don't add anything here.
-    Resolve, // Any passive system or effect.
+    DetermineIntent, // Any AI systems. Sets the ActionIntent component
+    ResolveIntent,   // Don't add anything here.
+    Resolution,      // Any passive system or effect.
 }
 
 #[derive(Component, Default, Debug)]
-#[require(Energy, Speed, NextAction)]
+#[require(Energy, Speed, ActionIntent)]
 pub struct Actor;
 
 #[derive(Component, Default)]
@@ -46,7 +55,7 @@ pub struct Ready;
 /// None represents an actor that hasn't made up its mind yet.
 /// If this is a player... that's fine.
 #[derive(Component, Clone, Copy, Default)]
-pub struct NextAction(pub Option<Action>);
+pub struct ActionIntent(pub Option<Action>);
 
 #[derive(Clone, Copy, Debug)]
 pub enum Action {
@@ -61,12 +70,6 @@ impl Action {
         // Default
         100
     }
-}
-
-#[derive(Message, Clone, Copy)]
-pub struct ActionPerformed {
-    pub entity: Entity,
-    pub action: Action,
 }
 
 /// Progresses the energy of all waiting actors. Marks an actor as ready if their energy is at/above 100.
@@ -95,21 +98,44 @@ fn begin_turn(
             }
             energy.0 += speed.0;
             iter += 1;
+            if iter > max_iter {
+                error!("Safety valve exploded.");
+            }
         }
     }
 }
 
 /// Won't progress to the resolution phase (via message) until the readied actor has decided their next action.
 /// Game pauses while you think!
-fn execute_action(
-    mut q_actors: Query<(Entity, &mut NextAction, &mut Energy), With<Ready>>,
-    mut writer: MessageWriter<ActionPerformed>,
+fn resolve_intent(
+    acting: Query<(Entity, &mut ActionIntent, &mut Energy), With<Ready>>,
+    others: Query<(Entity, &Position), Without<Ready>>,
+    mut moves: MessageWriter<MoveMessage>,
+    mut attacks: MessageWriter<AttackMessage>,
 ) {
-    for (entity, mut next_action, mut energy) in &mut q_actors {
-        if let Some(action) = next_action.0 {
+    for (entity, mut intent, mut energy) in acting {
+        if let Some(action) = intent.0 {
+            // Determine if we're bumping into an enemy. Emit an attack action if so. Otherwise, emit the move message.
+            match action {
+                Action::Move { target } => {
+                    if let Some(obstructing_enemy) = others
+                        .iter()
+                        .filter(|(other, pos)| *other != entity && pos.0 == target)
+                        .next()
+                    {
+                        attacks.write(AttackMessage {
+                            attacker: entity,
+                            target: obstructing_enemy.0,
+                        });
+                    } else {
+                        moves.write(MoveMessage(entity, target));
+                    }
+                }
+                _ => {}
+            }
             energy.0 -= action.cost();
-            writer.write(ActionPerformed { entity, action });
-            next_action.0 = None;
+
+            intent.0 = None;
         }
     }
 }

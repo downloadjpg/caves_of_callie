@@ -2,6 +2,7 @@ use bevy::{prelude::*, window::WindowMode};
 use bevy_ascii_terminal::*;
 #[allow(dead_code)]
 mod ai;
+mod combat;
 mod display;
 mod log;
 mod map;
@@ -14,6 +15,7 @@ use map::*;
 use movement::Position;
 
 use crate::ai::AiPlugin;
+use crate::combat::CombatPlugin;
 use crate::display::DisplayPlugin;
 use crate::log::AnnouncementLogPlugin;
 use crate::movement::MovementPlugin;
@@ -31,6 +33,7 @@ fn main() {
             PlayerPlugin,
             AnnouncementLogPlugin,
             AiPlugin,
+            CombatPlugin,
         ))
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())
@@ -41,8 +44,9 @@ fn main() {
 fn setup(mut commands: Commands) {
     // Spawn player
     commands.spawn(player::Player::default());
-    commands.spawn((monster::Orc, Position([5, 5].into())));
     commands.spawn((monster::Orc, Position([2, 5].into())));
+    commands.spawn((monster::Orc, Position([10, 5].into())));
+    commands.spawn((monster::Orc, Position([7, 5].into())));
 }
 
 fn system_input(

@@ -1,5 +1,5 @@
 use crate::Map;
-use crate::turn_system::*;
+use crate::movement::MoveMessage;
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
@@ -10,7 +10,7 @@ impl Plugin for AnnouncementLogPlugin {
         app.add_systems(Startup, |mut commands: Commands| {
             commands.spawn(AnnouncementLog::default());
         });
-        app.add_systems(Update, announce_actions);
+        app.add_systems(Update, announce_wall_bumps);
         app.add_observer(display_message);
     }
 }
@@ -51,22 +51,34 @@ fn display_message(
     term.put_string([0, 0], messages);
 }
 
-fn announce_actions(
+// fn announce_actions(
+//     mut commands: Commands,
+//     mut msg: MessageReader<ActionPerformed>,
+//     map: Single<&Map>,
+// ) {
+//     for performance in msg.read() {
+//         let entity = performance.entity;
+//         let action = performance.action;
+
+//         match action {
+//             Action::Move { target: new_pos } => {
+//                 if !map.is_walkable(new_pos) {
+//                     commands.trigger(announcement("A wall!"))
+//                 }
+//             }
+//             _ => {}
+//         }
+//     }
+// }
+
+fn announce_wall_bumps(
     mut commands: Commands,
-    mut msg: MessageReader<ActionPerformed>,
+    mut moves: MessageReader<MoveMessage>,
     map: Single<&Map>,
 ) {
-    for performance in msg.read() {
-        let entity = performance.entity;
-        let action = performance.action;
-
-        match action {
-            Action::Move { target: new_pos } => {
-                if !map.is_walkable(new_pos) {
-                    commands.trigger(announcement("A wall!"))
-                }
-            }
-            _ => {}
+    for MoveMessage(_entity, new_pos) in moves.read() {
+        if !map.is_walkable(*new_pos) {
+            commands.trigger(announcement("A wall!"));
         }
     }
 }

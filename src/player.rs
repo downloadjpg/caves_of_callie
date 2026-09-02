@@ -9,7 +9,10 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, decide_player_action.in_set(TurnSet::Decide));
+        app.add_systems(
+            Update,
+            decide_player_action.in_set(TurnSet::DetermineIntent),
+        );
     }
 }
 
@@ -28,7 +31,7 @@ pub struct Player;
 
 fn decide_player_action(
     input: Res<ButtonInput<KeyCode>>,
-    q_player: Single<(&mut NextAction, &Position), With<Player>>,
+    q_player: Single<(&mut ActionIntent, &Position), With<Player>>,
 ) {
     let (mut next_action, position) = q_player.into_inner();
     let dir = get_input_direction(input);

@@ -24,3 +24,8 @@ pub struct Orc;
 
 #[derive(Component, Default)]
 pub struct Name(String);
+
+#[derive(Component, Default)]
+pub struct Stats {
+    attack: i32,
+}

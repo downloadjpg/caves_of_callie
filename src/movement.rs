@@ -5,11 +5,14 @@ pub struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, apply_move.in_set(TurnSet::Resolve));
+        app.add_systems(Update, apply_move.in_set(TurnSet::Resolution));
     }
 }
 
-#[derive(Component, Clone, Copy, Default)]
+#[derive(Message)]
+pub struct MoveMessage(pub Entity, pub IVec2);
+
+#[derive(Component, Clone, Copy, Default, Debug)]
 pub struct Position(pub IVec2);
 
 impl From<[i32; 2]> for Position {
@@ -25,17 +28,16 @@ impl From<IVec2> for Position {
 }
 
 fn apply_move(
-    mut reader: MessageReader<ActionPerformed>,
+    mut reader: MessageReader<MoveMessage>,
     map: Single<&mut Map>,
     mut q_actors: Query<(Entity, &mut Position), With<Actor>>,
 ) {
-    for &ActionPerformed { entity, action } in reader.read() {
-        let Action::Move { target: new_pos } = action else {
-            continue; // not a move action, some other Resolve system handles it
-        };
+    for &MoveMessage(entity, new_pos) in reader.read() {
         if !map.is_walkable(new_pos) {
             continue; // blocked — could emit a MoveBlocked message here instead
         }
+
+        // Check if we're bumping into a monster
         let occupied = q_actors
             .iter()
             .any(|(other, pos)| other != entity && pos.0 == new_pos);
@@ -44,6 +46,7 @@ fn apply_move(
             continue;
         }
 
+        // Update the entity's position
         let Ok((_, mut position)) = q_actors.get_mut(entity) else {
             continue; // entity despawned or has no Position, skip
         };

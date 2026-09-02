@@ -7,12 +7,13 @@ pub struct AiPlugin;
 
 impl Plugin for AiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, ai_decide.in_set(TurnSet::Decide));
+        app.add_systems(Update, ai_decide.in_set(TurnSet::DetermineIntent));
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub enum AiBehavior {
+    #[default]
     Wander,
     //Pursue { target: IVec2 },
     //Flee,
@@ -21,7 +22,7 @@ pub enum AiBehavior {
 
 // cute idea, have next action be private and create a setter function to handle invariance.
 fn ai_decide(
-    mut q_ai: Query<(Entity, &AiBehavior, &Position, &mut NextAction), With<Ready>>,
+    mut q_ai: Query<(Entity, &AiBehavior, &Position, &mut ActionIntent), With<Ready>>,
     player_pos: Query<&Position, With<Player>>,
     map: Single<&Map>,
 ) {
