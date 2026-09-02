@@ -3,11 +3,9 @@ use crate::ai::*;
 use crate::display::Renderable;
 use crate::turn_system::*;
 
-use bevy::prelude::*;
-
 #[derive(Component, Default)]
-
 pub struct Monster;
+
 #[derive(Component, Default)]
 #[require(
     Monster,
@@ -16,9 +14,13 @@ pub struct Monster;
         fg: Color::linear_rgb(1.0, 0.0, 0.0).into(),
         bg: Color::BLACK.into(),
     },
-    Position,
     Actor,
+    Name("Orc".into()),
+    Position,
     AiBehavior::Wander,
     Speed(5),
 )]
 pub struct Orc;
+
+#[derive(Component, Default)]
+pub struct Name(String);
