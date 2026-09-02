@@ -1,7 +1,6 @@
-use super::*;
+use crate::Position;
+use crate::turn_system::*;
 use bevy::prelude::*;
-use player::*;
-use turn_system::*;
 
 pub struct AiPlugin;
 
@@ -23,14 +22,14 @@ pub enum AiBehavior {
 // cute idea, have next action be private and create a setter function to handle invariance.
 fn ai_decide(
     mut q_ai: Query<(Entity, &AiBehavior, &Position, &mut ActionIntent), With<Ready>>,
-    player_pos: Query<&Position, With<Player>>,
-    map: Single<&Map>,
+    //player_pos: Query<&Position, With<Player>>,
+    //map: Single<&Map>,
 ) {
-    let player_pos = player_pos.iter().next();
-    for (entity, behavior, pos, mut next_action) in q_ai.iter_mut() {
+    //let player_pos = player_pos.iter().next();
+    for (_entity, behavior, pos, mut next_action) in q_ai.iter_mut() {
         next_action.0 = match behavior {
             AiBehavior::Wander => Some(decide_wander(pos.0)),
-            _ => Some(Action::Wait), //AiBehavior::Pursue { target: target } => decide_pursue(pos.0, target), //AiBehavior::Flee { .. } => decide_flee(*pos, *player_pos),
+            //_ => Some(Action::Wait), //AiBehavior::Pursue { target: target } => decide_pursue(pos.0, target), //AiBehavior::Flee { .. } => decide_flee(*pos, *player_pos),
         };
     }
 }

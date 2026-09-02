@@ -33,6 +33,7 @@ fn startup(mut commands: Commands) {
     ));
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum Tile {
     Floor,
@@ -82,6 +83,7 @@ impl Map {
             tiles: vec![Tile::Floor; width * height],
         }
     }
+    #[allow(dead_code)]
     pub fn new_solid(width: usize, height: usize) -> Map {
         Map {
             width: width as i32,
@@ -158,6 +160,7 @@ impl Map {
 pub struct MapBuilder {
     map: Map,
 }
+#[allow(dead_code)]
 impl MapBuilder {
     pub fn new(width: usize, height: usize) -> MapBuilder {
         MapBuilder {
@@ -173,7 +176,8 @@ impl MapBuilder {
         }
         self
     }
-    pub fn paint(mut self, pos: IVec2, tile: Tile) -> MapBuilder {
+    #[allow(dead_code)]
+    pub fn paint(self, pos: IVec2, tile: Tile) -> MapBuilder {
         self.paint_rect(IRect { min: pos, max: pos }, tile)
     }
 

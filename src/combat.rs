@@ -1,4 +1,4 @@
-use bevy::{ecs::world, prelude::*};
+use bevy::prelude::*;
 
 /*
 app.add_systems(Update, (
@@ -21,7 +21,7 @@ pub struct AttackMessage {
     pub attacker: Entity,
     pub target: Entity,
 }
-
+#[allow(dead_code)]
 #[derive(Message)]
 struct DamageMessage {
     target: Entity,
@@ -29,6 +29,7 @@ struct DamageMessage {
     source: Entity,
 }
 
+#[allow(dead_code)]
 #[derive(Message)]
 struct DeathMessage {
     entity: Entity,
@@ -36,6 +37,9 @@ struct DeathMessage {
 
 fn resolve_attacks(mut attacks: MessageReader<AttackMessage>, mut commands: Commands) {
     for msg in attacks.read() {
-        commands.trigger(crate::log::announcement("Something hit something!"));
+        commands.trigger(crate::log::announcement(format!(
+            "{} hit {}!",
+            msg.attacker, msg.target
+        )));
     }
 }

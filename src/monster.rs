@@ -22,9 +22,11 @@ pub struct Monster;
 )]
 pub struct Orc;
 
+#[allow(dead_code)]
 #[derive(Component, Default)]
 pub struct Name(String);
 
+#[allow(dead_code)]
 #[derive(Component, Default)]
 pub struct Stats {
     attack: i32,

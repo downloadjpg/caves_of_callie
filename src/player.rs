@@ -3,6 +3,7 @@ use crate::display::Renderable;
 use crate::turn_system::*;
 use bevy::prelude::*;
 
+#[allow(dead_code)]
 mod commands;
 
 pub struct PlayerPlugin;

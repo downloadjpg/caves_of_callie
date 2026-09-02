@@ -2,7 +2,6 @@ use super::get_input_direction;
 use crate::color;
 use crate::{Position, display::*, player::Player};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
-
 const LOOK_KEY: KeyCode = KeyCode::Semicolon;
 pub struct PlayerCommandsPlugin;
 impl Plugin for PlayerCommandsPlugin {
@@ -28,5 +27,4 @@ fn move_cursor(mut cursor: Single<&mut Cursor>, input: Res<ButtonInput<KeyCode>>
     let dir = get_input_direction(input);
     cursor.pos += dir;
 }
-
-fn toggle(player_position: Query<&Position, With<Player>>) {}
+fn toggle(_player_position: Query<&Position, With<Player>>) {}

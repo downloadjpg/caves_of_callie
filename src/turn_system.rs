@@ -57,6 +57,7 @@ pub struct Ready;
 #[derive(Component, Clone, Copy, Default)]
 pub struct ActionIntent(pub Option<Action>);
 
+#[allow(dead_code)]
 #[derive(Clone, Copy, Debug)]
 pub enum Action {
     Move { target: IVec2 },
