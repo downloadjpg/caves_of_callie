@@ -14,6 +14,8 @@ impl Plugin for TurnSystemPlugin {
                 TurnSet::DetermineIntent,
                 TurnSet::ResolveIntent,
                 TurnSet::Resolution,
+                TurnSet::Announcements,
+                TurnSet::CleanUp,
             )
                 .chain(),
         );
@@ -28,6 +30,8 @@ pub enum TurnSet {
     DetermineIntent, // Any AI systems. Sets the ActionIntent component
     ResolveIntent,   // Don't add anything here.
     Resolution,      // Any passive system or effect.
+    Announcements,   // stupid.
+    CleanUp,         // Despawning entities, other destructive effects.
 }
 
 #[derive(Component, Default, Debug)]

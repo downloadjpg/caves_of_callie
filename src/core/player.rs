@@ -1,4 +1,4 @@
-use crate::core::{components::*, turn_system::*};
+use crate::core::{components::*, monster::*, turn_system::*};
 use bevy::prelude::*;
 
 //mod commands;
@@ -17,6 +17,9 @@ impl Plugin for PlayerPlugin {
 #[derive(Default, Component)]
 #[require(
     Actor,
+    Name("Player".into()),
+    Health,
+    Stats,
     Position(IVec2 { x: 5, y: 5 }),
     Renderable {
         glyph: '@',

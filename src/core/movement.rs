@@ -8,6 +8,7 @@ pub struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
+        app.add_message::<MoveMessage>();
         app.add_systems(Update, apply_move.in_set(TurnSet::Resolution));
     }
 }

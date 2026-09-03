@@ -8,6 +8,9 @@ pub struct Renderable {
     //pub depth: i32
 }
 
+#[derive(Component)]
+pub struct Dead;
+
 #[derive(Component, Clone, Copy, Default, Debug)]
 pub struct Position(pub IVec2);
 

@@ -13,6 +13,8 @@ pub struct Monster;
         bg: Color::BLACK.into(),
     },
     Actor,
+    Health,
+    Stats,
     Name("Orc".into()),
     Position,
     AiBehavior::Wander,
@@ -20,14 +22,10 @@ pub struct Monster;
 )]
 pub struct Orc;
 
-#[allow(dead_code)]
-#[derive(Component, Default)]
-pub struct Name(String);
-
 #[derive(Component, Default)]
 pub struct Stats {
-    attack: i32,
+    pub attack: i32,
 }
 
 #[derive(Component, Default)]
-pub struct Health(i32);
+pub struct Health(pub i32);

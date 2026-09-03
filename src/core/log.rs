@@ -1,4 +1,6 @@
-use crate::core::{combat::AttackMessage, map::Map, movement::MoveMessage};
+use crate::core::{
+    combat::*, map::Map, movement::MoveMessage, player::Player, turn_system::TurnSet,
+};
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
@@ -9,7 +11,15 @@ impl Plugin for AnnouncementLogPlugin {
         app.add_systems(Startup, |mut commands: Commands| {
             commands.spawn(AnnouncementLog::default());
         });
-        app.add_systems(Update, (announce_wall_bumps, announce_attacks));
+        app.add_systems(
+            Update,
+            (
+                announce_player_wall_bumps,
+                announce_attacks,
+                announce_deaths,
+            )
+                .in_set(TurnSet::Announcements),
+        );
         app.add_observer(display_message);
     }
 }
@@ -29,7 +39,7 @@ pub fn announcement(msg: impl Into<String>) -> Announcement {
 
 #[derive(Component, Default)]
 #[require(
-    Terminal = Terminal::new([20, 40]).with_border(BoxStyle::SINGLE_LINE),
+    Terminal = Terminal::new([30, 40]).with_border(BoxStyle::SINGLE_LINE),
     Transform::from_xyz(30.0, 0.0, 0.0),
 )]
 struct AnnouncementLog(pub Vec<String>);
@@ -70,23 +80,42 @@ fn display_message(
 //     }
 // }
 
-fn announce_wall_bumps(
+fn announce_player_wall_bumps(
     mut commands: Commands,
     mut moves: MessageReader<MoveMessage>,
+    player: Single<Entity, With<Player>>,
     map: Single<&Map>,
 ) {
-    for MoveMessage(_entity, new_pos) in moves.read() {
+    for MoveMessage(entity, new_pos) in moves.read() {
+        if player.ne(entity) {
+            continue;
+        }
         if !map.is_walkable(*new_pos) {
-            commands.trigger(announcement("A wall!"));
+            commands.trigger(announcement("You bump into a wall."));
         }
     }
 }
 
-fn announce_attacks(mut attacks: MessageReader<AttackMessage>, mut commands: Commands) {
+fn announce_attacks(
+    names: Query<&Name>,
+    mut attacks: MessageReader<AttackMessage>,
+    mut commands: Commands,
+) {
     for msg in attacks.read() {
-        commands.trigger(announcement(format!(
-            "{} hit {}!",
-            msg.attacker, msg.target
-        )));
+        let attacker = names.get(msg.attacker).unwrap();
+        let defender = names.get(msg.defender).unwrap();
+        commands.trigger(announcement(format!("{} attacks {}!", attacker, defender)));
+    }
+}
+
+fn announce_deaths(
+    names: Query<&Name>,
+    mut deaths: MessageReader<DeathMessage>,
+    mut commands: Commands,
+) {
+    for msg in deaths.read() {
+        let default = Name::new("Something");
+        let name = names.get(msg.entity).unwrap_or(&default);
+        commands.trigger(announcement(format!("{} is killed!", name)));
     }
 }
