@@ -8,8 +8,6 @@ pub struct TurnSystemPlugin;
 
 impl Plugin for TurnSystemPlugin {
     fn build(&self, app: &mut App) {
-        app.add_message::<MoveMessage>();
-        app.add_message::<AttackMessage>();
         app.configure_sets(
             Update,
             (
@@ -96,10 +94,10 @@ fn begin_turn(
                 done = true;
             }
             energy.0 += speed.0;
-            iter += 1;
-            if iter > max_iter {
-                error!("Safety valve exploded.");
-            }
+        }
+        iter += 1;
+        if iter > max_iter {
+            error!("Safety valve exploded.");
         }
     }
 }
@@ -124,7 +122,7 @@ fn resolve_intent(
                     {
                         attacks.write(AttackMessage {
                             attacker: entity,
-                            target: obstructing_enemy.0,
+                            defender: obstructing_enemy.0,
                         });
                     } else {
                         moves.write(MoveMessage(entity, target));
