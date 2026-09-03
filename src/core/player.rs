@@ -47,35 +47,21 @@ fn decide_player_action(
 }
 
 fn get_input_direction(input: Res<ButtonInput<KeyCode>>) -> IVec2 {
-    // Cardinal directions: arrows + numpad
-    let right_keys = [KeyCode::ArrowRight, KeyCode::Numpad6];
-    let left_keys = [KeyCode::ArrowLeft, KeyCode::Numpad4];
-    let up_keys = [KeyCode::ArrowUp, KeyCode::Numpad8];
-    let down_keys = [KeyCode::ArrowDown, KeyCode::Numpad2];
+    input
+        .get_just_pressed()
+        .map(|key| match key {
+            // Cardinal directions: arrows + numpad
+            KeyCode::ArrowUp | KeyCode::Numpad8 => IVec2::new(0, -1), // Up
+            KeyCode::ArrowDown | KeyCode::Numpad2 => IVec2::new(0, 1), // Down
+            KeyCode::ArrowLeft | KeyCode::Numpad4 => IVec2::new(-1, 0), // Left
+            KeyCode::ArrowRight | KeyCode::Numpad6 => IVec2::new(1, 0), // Right
+            // Diagonals: numpad only
+            KeyCode::Numpad7 => IVec2::new(-1, -1), // Up-Left
+            KeyCode::Numpad9 => IVec2::new(1, -1),  // Up-Right
+            KeyCode::Numpad1 => IVec2::new(-1, 1),  // Down-Left
+            KeyCode::Numpad3 => IVec2::new(1, 1),   // Down-Right
 
-    // Diagonals: numpad only
-    let up_left_keys = [KeyCode::Numpad7];
-    let up_right_keys = [KeyCode::Numpad9];
-    let down_left_keys = [KeyCode::Numpad1];
-    let down_right_keys = [KeyCode::Numpad3];
-
-    if input.any_just_pressed(up_left_keys) {
-        IVec2::new(-1, -1)
-    } else if input.any_just_pressed(up_right_keys) {
-        IVec2::new(1, -1)
-    } else if input.any_just_pressed(down_left_keys) {
-        IVec2::new(-1, 1)
-    } else if input.any_just_pressed(down_right_keys) {
-        IVec2::new(1, 1)
-    } else if input.any_just_pressed(up_keys) {
-        IVec2::new(0, -1)
-    } else if input.any_just_pressed(down_keys) {
-        IVec2::new(0, 1)
-    } else if input.any_just_pressed(left_keys) {
-        IVec2::new(-1, 0)
-    } else if input.any_just_pressed(right_keys) {
-        IVec2::new(1, 0)
-    } else {
-        IVec2::ZERO
-    }
+            _ => IVec2::ZERO,
+        })
+        .sum()
 }
