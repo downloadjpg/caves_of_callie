@@ -1,4 +1,5 @@
 use crate::core::components::Position;
+use crate::core::player::Player;
 use crate::core::turn_system::*;
 use bevy::prelude::*;
 pub struct AiPlugin;
@@ -21,20 +22,26 @@ pub enum AiBehavior {
 // cute idea, have next action be private and create a setter function to handle invariance.
 fn ai_decide(
     mut q_ai: Query<(Entity, &AiBehavior, &Position, &mut ActionIntent), With<Ready>>,
-    //player_pos: Query<&Position, With<Player>>,
+    player_pos: Single<&Position, With<Player>>,
     //map: Single<&Map>,
 ) {
     //let player_pos = player_pos.iter().next();
-    for (_entity, behavior, pos, mut next_action) in q_ai.iter_mut() {
-        next_action.0 = match behavior {
-            AiBehavior::Wander => Some(decide_wander(pos.0)),
-            //_ => Some(Action::Wait), //AiBehavior::Pursue { target: target } => decide_pursue(pos.0, target), //AiBehavior::Flee { .. } => decide_flee(*pos, *player_pos),
+    for (_entity, _behavior, pos, mut next_action) in q_ai.iter_mut() {
+        // If the player is in range, attack!
+        let dist_to_player = player_pos.0 - pos.0;
+        let target = {
+            if dist_to_player.length_squared() <= 2 {
+                player_pos.0
+            } else {
+                pos.0 + pick_random_direction()
+            }
         };
+        next_action.0 = Some(Action::Move { target: target })
     }
 }
 
-fn decide_wander(pos: IVec2) -> Action {
+fn pick_random_direction() -> IVec2 {
     let dirs = [IVec2::X, -IVec2::X, IVec2::Y, -IVec2::Y];
     let dir = dirs[rand::random::<u8>() as usize % dirs.len()];
-    Action::Move { target: dir + pos }
+    dir
 }

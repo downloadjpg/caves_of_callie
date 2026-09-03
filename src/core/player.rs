@@ -35,9 +35,13 @@ fn decide_player_action(
     q_player: Single<(&mut ActionIntent, &Position), With<Player>>,
 ) {
     let (mut next_action, position) = q_player.into_inner();
-    let dir = get_input_direction(input);
+    let dir = get_input_direction(&input);
     let action = if dir == IVec2::ZERO {
-        None
+        if input.just_pressed(KeyCode::Numpad5) {
+            Some(Action::Wait)
+        } else {
+            None
+        }
     } else {
         Some(Action::Move {
             target: dir + position.0,
@@ -46,7 +50,7 @@ fn decide_player_action(
     next_action.0 = action;
 }
 
-fn get_input_direction(input: Res<ButtonInput<KeyCode>>) -> IVec2 {
+fn get_input_direction(input: &Res<ButtonInput<KeyCode>>) -> IVec2 {
     input
         .get_just_pressed()
         .map(|key| match key {
