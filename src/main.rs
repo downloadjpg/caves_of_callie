@@ -32,8 +32,7 @@ fn main() {
             AiPlugin,
             CombatPlugin,
         ))
-        .add_plugins(EguiPlugin::default())
-        .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins((EguiPlugin::default(), WorldInspectorPlugin::new()))
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())
         .add_systems(Update, system_input)
