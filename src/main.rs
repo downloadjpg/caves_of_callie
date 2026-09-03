@@ -1,5 +1,6 @@
 use bevy::{prelude::*, window::WindowMode};
 use bevy_ascii_terminal::*;
+use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
 use crate::{
     core::{
@@ -31,6 +32,8 @@ fn main() {
             AiPlugin,
             CombatPlugin,
         ))
+        .add_plugins(EguiPlugin::default())
+        .add_plugins(WorldInspectorPlugin::new())
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())
         .add_systems(Update, system_input)
