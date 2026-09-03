@@ -82,7 +82,6 @@ fn apply_damage(
     for msg in damages.read() {
         if let Ok(mut hp) = healths.get_mut(msg.target) {
             hp.0 -= msg.amount;
-            println!("{}, {}", hp.0, msg.amount);
             if hp.0 <= 0 {
                 deaths.write(DeathMessage { entity: msg.target });
             }

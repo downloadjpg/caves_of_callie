@@ -37,13 +37,11 @@ fn player_input_system(
     mut next_state: ResMut<NextState<TurnState>>,
     mut commands: Commands,
 ) {
-    println!("waiting for player");
     let (player, pos) = s_player.into_inner();
     if let Some(action) = decide_player_action(&input, pos.0) {
         commands.entity(player).insert(Intent(action));
         next_state.set(TurnState::Processing);
     }
-    println!(":(");
 }
 
 fn pause_for_player_system(

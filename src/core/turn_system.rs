@@ -29,7 +29,6 @@ impl Plugin for TurnSystemPlugin {
                 begin_turn.in_set(TurnSet::BeginInitiative),
                 resolve_intent.in_set(TurnSet::ResolveIntent),
                 end_turn.in_set(TurnSet::EndInitiative),
-                debug,
             ),
         );
     }
@@ -98,10 +97,6 @@ impl Action {
     }
 }
 
-fn debug(state: Res<State<TurnState>>) {
-    println!("{:?}", state.get())
-}
-
 const ACTION_COST: i32 = 100;
 /// Progresses the energy of all waiting actors. Marks an actor as ready if their energy is at/above 100.
 /// This means ticks can progress with no actor being ready.
@@ -110,10 +105,6 @@ pub fn begin_turn(
     mut q_waiting_actors: Query<(Entity, &mut Energy, &Speed), (With<Actor>, Without<Ready>)>,
     q_ready_actors: Query<&Actor, With<Ready>>,
 ) {
-    for (entity, energy, _speed) in q_waiting_actors.iter() {
-        println!("ID {}:, {}", entity, energy.0)
-    }
-
     // Don't do anything if there are ready actors. Or no waiting actors.
     if !q_ready_actors.is_empty() || q_waiting_actors.is_empty() {
         return;
@@ -137,7 +128,6 @@ fn resolve_intent(
     for (entity, intent, mut energy) in acting {
         // Determine if we're bumping into an enemy. Emit an attack action if so. Otherwise, emit the move message.
         // TODO: this redirection should perhaps be moved to the ai... you can bump into something on accident.
-        println!("Entity {} is thinking about {:?}", entity, intent);
         if let Some(intent) = intent {
             match intent.0 {
                 Action::Move { target } => {
@@ -158,8 +148,6 @@ fn resolve_intent(
             }
             energy.0 -= intent.0.cost();
             commands.entity(entity).remove::<Intent>();
-        } else {
-            println!("no intent found!");
         }
     }
 }
