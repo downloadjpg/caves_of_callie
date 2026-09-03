@@ -13,7 +13,7 @@ pub struct Monster;
         bg: Color::BLACK.into(),
     },
     Actor,
-    Health,
+    Health(20),
     Stats,
     Name("Orc".into()),
     Position,

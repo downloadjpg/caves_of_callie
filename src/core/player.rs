@@ -19,7 +19,7 @@ impl Plugin for PlayerPlugin {
     Actor,
     Name("Player".into()),
     Health,
-    Stats,
+    Stats { attack: 5},
     Position(IVec2 { x: 5, y: 5 }),
     Renderable {
         glyph: '@',

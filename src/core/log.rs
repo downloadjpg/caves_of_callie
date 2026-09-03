@@ -42,7 +42,7 @@ pub fn announcement(msg: impl Into<String>) -> Announcement {
     Terminal = Terminal::new([30, 40]).with_border(BoxStyle::SINGLE_LINE),
     Transform::from_xyz(30.0, 0.0, 0.0),
 )]
-struct AnnouncementLog(pub Vec<String>);
+struct AnnouncementLog(Vec<String>);
 
 fn display_message(
     announcement: On<Announcement>,

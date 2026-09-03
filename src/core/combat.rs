@@ -1,4 +1,4 @@
-use bevy::{audio::PlaybackMode::Despawn, prelude::*};
+use bevy::prelude::*;
 
 use crate::core::{
     components::Dead,
@@ -53,22 +53,22 @@ pub struct DeathMessage {
 fn resolve_attacks(
     mut attacks: MessageReader<AttackMessage>,
     mut damage: MessageWriter<DamageMessage>,
-    combatants: Query<(Entity, &mut Health, &Stats)>,
+    combatants: Query<(Entity, &Stats)>,
 ) {
     for msg in attacks.read() {
-        let Ok(attacker) = combatants.get(msg.attacker) else {
+        let Ok((attacker, attacker_stats)) = combatants.get(msg.attacker) else {
             continue;
         };
-        let Ok(defender) = combatants.get(msg.defender) else {
+        let Ok((defender, _defender_stats)) = combatants.get(msg.defender) else {
             continue;
         };
 
-        let dmg_amt = defender.2.attack;
+        let dmg_amt = attacker_stats.attack;
 
         let message = DamageMessage {
-            target: defender.0,
+            target: defender,
             amount: dmg_amt,
-            source: attacker.0,
+            source: attacker,
         };
         damage.write(message);
     }
@@ -82,7 +82,7 @@ fn apply_damage(
     for msg in damages.read() {
         if let Ok(mut hp) = healths.get_mut(msg.target) {
             hp.0 -= msg.amount;
-            println!("{}", hp.0);
+            println!("{}, {}", hp.0, msg.amount);
             if hp.0 <= 0 {
                 deaths.write(DeathMessage { entity: msg.target });
             }
