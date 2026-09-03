@@ -42,7 +42,7 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     // Spawn player
-    commands.spawn(player::Player::default());
+    // commands.spawn(player::Player::default());
     commands.spawn((monster::Orc, Position([2, 5].into())));
     commands.spawn((monster::Orc, Position([10, 5].into())));
     commands.spawn((monster::Orc, Position([7, 5].into())));

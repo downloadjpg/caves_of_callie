@@ -21,22 +21,22 @@ pub enum AiBehavior {
 
 // cute idea, have next action be private and create a setter function to handle invariance.
 fn ai_decide(
-    mut q_ai: Query<(Entity, &AiBehavior, &Position, &mut ActionIntent), With<Ready>>,
-    player_pos: Single<&Position, With<Player>>,
-    //map: Single<&Map>,
+    mut q_ai: Query<(Entity, &AiBehavior, &Position), With<Ready>>,
+    player_pos: Option<Single<&Position, With<Player>>>,
+    mut commands: Commands,
 ) {
-    //let player_pos = player_pos.iter().next();
-    for (_entity, _behavior, pos, mut next_action) in q_ai.iter_mut() {
-        // If the player is in range, attack!
-        let dist_to_player = player_pos.0 - pos.0;
-        let target = {
-            if dist_to_player.length_squared() <= 2 {
-                player_pos.0
-            } else {
-                pos.0 + pick_random_direction()
-            }
-        };
-        next_action.0 = Some(Action::Move { target: target })
+    for (entity, _behavior, pos) in q_ai.iter_mut() {
+        // let dist_to_player = player_pos.0 - pos.0;
+        // let target = {
+        //     if dist_to_player.length_squared() <= 2 {
+        //         player_pos.0
+        //     } else {
+        //         pos.0 + pick_random_direction()
+        //     }
+        // };
+        commands.entity(entity).insert(Intent(Action::Move {
+            target: pos.0 + pick_random_direction(),
+        }));
     }
 }
 

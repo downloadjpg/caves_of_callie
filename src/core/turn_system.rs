@@ -8,34 +8,53 @@ pub struct TurnSystemPlugin;
 
 impl Plugin for TurnSystemPlugin {
     fn build(&self, app: &mut App) {
+        app.init_state::<TurnState>();
         app.configure_sets(
             Update,
             (
+                TurnSet::BeginInitiative,
                 TurnSet::DetermineIntent,
                 TurnSet::ResolveIntent,
                 TurnSet::Resolution,
                 TurnSet::Announcements,
                 TurnSet::CleanUp,
+                TurnSet::EndInitiative,
             )
-                .chain(),
+                .chain()
+                .run_if(in_state(TurnState::Processing)),
         );
-        app.add_systems(PreUpdate, begin_turn);
-        app.add_systems(Update, (resolve_intent).in_set(TurnSet::ResolveIntent));
-        app.add_systems(PostUpdate, end_turn);
+        app.add_systems(
+            Update,
+            (
+                begin_turn.in_set(TurnSet::BeginInitiative),
+                resolve_intent.in_set(TurnSet::ResolveIntent),
+                end_turn.in_set(TurnSet::EndInitiative),
+                debug,
+            ),
+        );
     }
 }
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TurnSet {
+    BeginInitiative,
     DetermineIntent, // Any AI systems. Sets the ActionIntent component
     ResolveIntent,   // Don't add anything here.
     Resolution,      // Any passive system or effect.
     Announcements,   // stupid.
     CleanUp,         // Despawning entities, other destructive effects.
+    EndInitiative,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
+pub enum TurnState {
+    #[default]
+    Processing,
+    Paused,
 }
 
 #[derive(Component, Default, Debug)]
-#[require(Energy, Speed, ActionIntent)]
+#[require(Energy, Speed, Intent)]
 pub struct Actor;
 
 #[derive(Component, Default)]
@@ -52,17 +71,23 @@ impl Default for Speed {
 #[derive(Component, Default, Debug)]
 pub struct Ready;
 
-/// None represents an actor that hasn't made up its mind yet.
-/// If this is a player... that's fine.
-#[derive(Component, Clone, Copy, Default)]
-pub struct ActionIntent(pub Option<Action>);
+/// Component representing the actor's next move.
+#[derive(Component, Clone, Copy, Default, Debug)]
+pub struct Intent(pub Action);
 
 #[allow(dead_code)]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub enum Action {
-    Move { target: IVec2 },
-    OpenDoor { target: IVec2 },
-    CloseDoor { target: IVec2 },
+    Move {
+        target: IVec2,
+    },
+    OpenDoor {
+        target: IVec2,
+    },
+    CloseDoor {
+        target: IVec2,
+    },
+    #[default]
     Wait,
 }
 
@@ -73,51 +98,48 @@ impl Action {
     }
 }
 
+fn debug(state: Res<State<TurnState>>) {
+    println!("{:?}", state.get())
+}
+
+const ACTION_COST: i32 = 100;
 /// Progresses the energy of all waiting actors. Marks an actor as ready if their energy is at/above 100.
-/// This *should* mean only one actor is ever ready per Update. Not sure if that's important or performant.
-/// TODO: Consider turning this into a batch system, so all ready actors are executed together with order based on speed.
-fn begin_turn(
+/// This means ticks can progress with no actor being ready.
+pub fn begin_turn(
     mut commands: Commands,
     mut q_waiting_actors: Query<(Entity, &mut Energy, &Speed), (With<Actor>, Without<Ready>)>,
     q_ready_actors: Query<&Actor, With<Ready>>,
 ) {
+    for (entity, energy, _speed) in q_waiting_actors.iter() {
+        println!("ID {}:, {}", entity, energy.0)
+    }
+
     // Don't do anything if there are ready actors. Or no waiting actors.
     if !q_ready_actors.is_empty() || q_waiting_actors.is_empty() {
         return;
     }
-
-    // We want to wait as long as we need to for the next actor to be ready, so we loop.
-    // TODO: Safety valve for actors not having enough speed...
-    let mut done = false;
-    let max_iter = 100;
-    let mut iter = 0;
-    while !done && iter < max_iter {
-        for (entity, mut energy, speed) in q_waiting_actors.iter_mut() {
-            if energy.0 >= 100 {
-                commands.entity(entity).insert(Ready);
-                done = true;
-            }
-            energy.0 += speed.0;
-        }
-        iter += 1;
-        if iter > max_iter {
-            error!("Safety valve exploded.");
+    // Every actor gains energy according to their speed. We mark any with enough energy as ready.
+    for (entity, mut energy, speed) in q_waiting_actors.iter_mut() {
+        energy.0 += speed.0;
+        if energy.0 >= ACTION_COST {
+            commands.entity(entity).insert(Ready);
         }
     }
 }
 
-/// Won't progress to the resolution phase (via message) until the readied actor has decided their next action.
-/// Game pauses while you think!
 fn resolve_intent(
-    acting: Query<(Entity, &mut ActionIntent, &mut Energy), With<Ready>>,
+    acting: Query<(Entity, Option<&Intent>, &mut Energy), With<Ready>>,
     others: Query<(Entity, &Position), Without<Ready>>,
     mut moves: MessageWriter<MoveMessage>,
     mut attacks: MessageWriter<AttackMessage>,
+    mut commands: Commands,
 ) {
-    for (entity, mut intent, mut energy) in acting {
-        if let Some(action) = intent.0 {
-            // Determine if we're bumping into an enemy. Emit an attack action if so. Otherwise, emit the move message.
-            match action {
+    for (entity, intent, mut energy) in acting {
+        // Determine if we're bumping into an enemy. Emit an attack action if so. Otherwise, emit the move message.
+        // TODO: this redirection should perhaps be moved to the ai... you can bump into something on accident.
+        println!("Entity {} is thinking about {:?}", entity, intent);
+        if let Some(intent) = intent {
+            match intent.0 {
                 Action::Move { target } => {
                     if let Some(obstructing_enemy) = others
                         .iter()
@@ -134,9 +156,10 @@ fn resolve_intent(
                 }
                 _ => {}
             }
-            energy.0 -= action.cost();
-
-            intent.0 = None;
+            energy.0 -= intent.0.cost();
+            commands.entity(entity).remove::<Intent>();
+        } else {
+            println!("no intent found!");
         }
     }
 }
