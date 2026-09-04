@@ -23,13 +23,6 @@ fn startup(mut commands: Commands) {
         .paint(IVec2 { x: 10, y: 10 }, Tile::ClosedDoor)
         .build();
     commands.spawn(map);
-    commands.spawn((
-        crate::display::MapDisplay,
-        Terminal::new([30, 40])
-            .with_border(BoxStyle::SINGLE_LINE)
-            // .TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 })
-            .with_title("Caves of Callie"),
-    ));
 }
 
 #[allow(dead_code)]

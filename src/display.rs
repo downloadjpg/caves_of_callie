@@ -1,5 +1,7 @@
 use crate::core::components::{Position, Renderable};
+use crate::core::log::AnnouncementLog;
 use crate::core::map::*;
+
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
@@ -17,6 +19,20 @@ pub struct MapDisplay;
 
 fn startup(mut commands: Commands) {
     commands.spawn(TerminalCamera::new());
+    // Announcements Panel
+    commands.spawn((
+        AnnouncementLog::default(),
+        Terminal::new([30, 40]).with_border(BoxStyle::SINGLE_LINE),
+        Transform::from_xyz(30.0, 0.0, 0.0),
+    ));
+    // Map Display
+    commands.spawn((
+        crate::display::MapDisplay,
+        Terminal::new([30, 40])
+            .with_border(BoxStyle::SINGLE_LINE)
+            // .TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 })
+            .with_title("Caves of Callie"),
+    ));
 }
 
 fn draw(
