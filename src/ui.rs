@@ -27,7 +27,7 @@ fn startup(mut commands: Commands) {
     ));
     // Map Display
     commands.spawn((
-        crate::display::MapDisplay,
+        crate::ui::MapDisplay,
         Terminal::new([30, 40])
             .with_border(BoxStyle::SINGLE_LINE)
             // .TerminalMeshTileScaling(Vec2 { x: 1.0, y: 1.0 })

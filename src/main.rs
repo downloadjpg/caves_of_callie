@@ -17,10 +17,10 @@ use crate::{
         player::{self, PlayerPlugin},
         turn_system::{IntentLog, TurnSystemPlugin},
     },
-    display::DisplayPlugin,
+    ui::DisplayPlugin,
 };
 mod core;
-mod display;
+mod ui;
 
 fn main() {
     App::new()
