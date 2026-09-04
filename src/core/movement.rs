@@ -2,7 +2,7 @@ use crate::core::{
     components::Position,
     log::announcement,
     map::Map,
-    turn_system::{Actor, TurnSet},
+    turn_system::{Action, Actor, Intent, Ready, TurnSet},
 };
 use bevy::prelude::*;
 pub struct MovementPlugin;
@@ -18,30 +18,27 @@ impl Plugin for MovementPlugin {
 pub struct MoveMessage(pub Entity, pub IVec2);
 
 fn apply_move(
-    mut reader: MessageReader<MoveMessage>,
     map: Single<&mut Map>,
-    mut q_actors: Query<(Entity, &mut Position), With<Actor>>,
+    mover: Single<(Entity, &Intent, &mut Position), (With<Actor>, With<Ready>)>,
+    other_actors: Query<&Position, (With<Actor>, Without<Ready>)>,
     mut commands: Commands,
 ) {
-    for &MoveMessage(entity, new_pos) in reader.read() {
-        if !map.is_walkable(new_pos) {
-            continue; // blocked — could emit a MoveBlocked message here instead
-        }
-
-        // Check if we're bumping into a monster
-        let occupied = q_actors
-            .iter()
-            .any(|(other, pos)| other != entity && pos.0 == new_pos);
-
-        if occupied {
-            commands.trigger(announcement("Bump!"));
-            continue;
-        }
-
-        // Update the entity's position
-        let Ok((_, mut position)) = q_actors.get_mut(entity) else {
-            continue; // entity despawned or has no Position, skip
-        };
-        *position = new_pos.into();
+    let (_entity, intent, mut pos) = mover.into_inner();
+    // Skip over non-move actions
+    let Intent(Action::Move { target }) = intent else {
+        return;
+    };
+    // Check if the spot is available on the map.
+    if !map.is_walkable(*target) {
+        return; // blocked - could emit an event instead...
     }
+    // Check if we're bumping into a monster
+    let occupied = other_actors.iter().any(|pos| pos.0 == *target);
+    if occupied {
+        commands.trigger(announcement("Bump!"));
+        return;
+    }
+    // IDEA: Replace this occupancy check with an 'occupancy' resource that tracks where all occupying entities are.
+    // Update position
+    pos.0 = *target;
 }

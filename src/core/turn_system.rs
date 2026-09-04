@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{ecs::relationship::OrderedRelationshipSourceCollection, prelude::*};
 /// Plugin for managing turns and turn order.
 /// To hook in, add systems to the decide and resolve system sets.
 /// Adapted from https://github.com/sarkahn/bevy_roguelike/blob/main/src/turn_system.rs
@@ -44,7 +44,7 @@ pub enum TurnSet {
     EndInitiative,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
+#[derive(Clone, Copy, Reflect, PartialEq, Eq, Hash, Debug, Default, States)]
 pub enum TurnState {
     #[default]
     Processing,
@@ -55,10 +55,10 @@ pub enum TurnState {
 #[require(Energy, Speed, Intent)]
 pub struct Actor;
 
-#[derive(Component, Default)]
+#[derive(Component, Default, Ord, PartialOrd, PartialEq, Eq)]
 pub struct Energy(i32);
 
-#[derive(Component)]
+#[derive(Component, PartialEq, PartialOrd, Ord, Eq)]
 pub struct Speed(pub i32);
 impl Default for Speed {
     fn default() -> Self {
@@ -111,12 +111,18 @@ pub fn begin_turn(
     if !q_ready_actors.is_empty() || q_waiting_actors.is_empty() {
         return;
     }
-    // Every actor gains energy according to their speed. We mark any with enough energy as ready.
-    for (entity, mut energy, speed) in q_waiting_actors.iter_mut() {
+    // Every actor gains energy according to their speed.
+    for (_, mut energy, speed) in q_waiting_actors.iter_mut() {
         energy.0 += speed.0;
-        if energy.0 >= ACTION_COST {
-            commands.entity(entity).insert(Ready);
-        }
+    }
+    // Select one actor to take a turn, adding the Ready component to it.
+    if let Some((next_actor, _, _)) = q_waiting_actors
+        .iter()
+        .sort::<(&Energy, &Speed)>()
+        .filter(|(_, energy, _)| energy.0 >= ACTION_COST)
+        .next()
+    {
+        commands.entity(next_actor).insert(Ready);
     }
 }
 

@@ -15,7 +15,7 @@ use crate::{
         monster,
         movement::MovementPlugin,
         player::{self, PlayerPlugin},
-        turn_system::{IntentLog, TurnSystemPlugin},
+        turn_system::{IntentLog, TurnState, TurnSystemPlugin},
     },
     ui::DisplayPlugin,
 };
@@ -35,10 +35,8 @@ fn main() {
             AiPlugin,
             CombatPlugin,
         ))
-        .add_plugins((
-            EguiPlugin::default(),
-            ResourceInspectorPlugin::<IntentLog>::default(),
-        ))
+        .add_plugins((EguiPlugin::default()))
+        .add_plugins(ResourceInspectorPlugin::<IntentLog>::default())
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())
         .add_systems(Update, system_input)
