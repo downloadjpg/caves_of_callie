@@ -1,4 +1,3 @@
-use crate::core::{combat::AttackMessage, components::Position, movement::MoveMessage};
 use bevy::prelude::*;
 /// Plugin for managing turns and turn order.
 /// To hook in, add systems to the decide and resolve system sets.
@@ -17,7 +16,6 @@ impl Plugin for TurnSystemPlugin {
                 (
                     TurnSet::BeginInitiative,
                     TurnSet::DetermineIntent,
-                    TurnSet::ResolveIntent,
                     TurnSet::Resolution,
                     TurnSet::Announcements,
                     TurnSet::CleanUp,
@@ -30,7 +28,6 @@ impl Plugin for TurnSystemPlugin {
                 Update,
                 (
                     begin_turn.in_set(TurnSet::BeginInitiative),
-                    resolve_intent.in_set(TurnSet::ResolveIntent),
                     end_turn.in_set(TurnSet::EndInitiative),
                 ),
             );
@@ -41,7 +38,6 @@ impl Plugin for TurnSystemPlugin {
 pub enum TurnSet {
     BeginInitiative,
     DetermineIntent, // Any AI systems. Sets the ActionIntent component
-    ResolveIntent,   // Don't add anything here.
     Resolution,      // Any passive system or effect.
     Announcements,   // stupid.
     CleanUp,         // Despawning entities, other destructive effects.
@@ -121,40 +117,6 @@ pub fn begin_turn(
         if energy.0 >= ACTION_COST {
             commands.entity(entity).insert(Ready);
         }
-    }
-}
-
-fn resolve_intent(
-    acting: Query<(Entity, &Intent, &mut Energy), With<Ready>>,
-    others: Query<(Entity, &Position), Without<Ready>>,
-    mut moves: MessageWriter<MoveMessage>,
-    mut attacks: MessageWriter<AttackMessage>,
-    mut commands: Commands,
-    mut intent_log: ResMut<IntentLog>,
-) {
-    for (entity, intent, mut energy) in acting {
-        // Determine if we're bumping into an enemy. Emit an attack action if so. Otherwise, emit the move message.
-        // TODO: this redirection should perhaps be moved to the ai... you can bump into something on accident.
-        intent_log.0.push((entity, *intent));
-        match intent.0 {
-            Action::Move { target } => {
-                if let Some(obstructing_enemy) = others
-                    .iter()
-                    .filter(|(other, pos)| *other != entity && pos.0 == target)
-                    .next()
-                {
-                    attacks.write(AttackMessage {
-                        attacker: entity,
-                        defender: obstructing_enemy.0,
-                    });
-                } else {
-                    moves.write(MoveMessage(entity, target));
-                }
-            }
-            _ => {}
-        }
-        energy.0 -= intent.0.cost();
-        commands.entity(entity).remove::<Intent>();
     }
 }
 
