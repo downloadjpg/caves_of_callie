@@ -1,6 +1,9 @@
 use bevy::{prelude::*, window::WindowMode};
 use bevy_ascii_terminal::*;
-use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
+use bevy_inspector_egui::{
+    bevy_egui::EguiPlugin,
+    quick::{ResourceInspectorPlugin, WorldInspectorPlugin},
+};
 
 use crate::{
     core::{
@@ -12,7 +15,7 @@ use crate::{
         monster,
         movement::MovementPlugin,
         player::{self, PlayerPlugin},
-        turn_system::TurnSystemPlugin,
+        turn_system::{IntentLog, TurnSystemPlugin},
     },
     display::DisplayPlugin,
 };
@@ -32,7 +35,10 @@ fn main() {
             AiPlugin,
             CombatPlugin,
         ))
-        .add_plugins((EguiPlugin::default(), WorldInspectorPlugin::new()))
+        .add_plugins((
+            EguiPlugin::default(),
+            ResourceInspectorPlugin::<IntentLog>::default(),
+        ))
         .insert_resource(ClearColor(Color::BLACK))
         .add_systems(Startup, (setup).chain())
         .add_systems(Update, system_input)
@@ -41,7 +47,7 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     // Spawn player
-    // commands.spawn(player::Player::default());
+    commands.spawn(player::Player::default());
     commands.spawn((monster::Orc, Position([2, 5].into())));
     commands.spawn((monster::Orc, Position([10, 5].into())));
     commands.spawn((monster::Orc, Position([7, 5].into())));

@@ -1,5 +1,6 @@
 use crate::core::{
     components::Position,
+    log::announcement,
     map::Map,
     turn_system::{Actor, TurnSet},
 };
@@ -20,6 +21,7 @@ fn apply_move(
     mut reader: MessageReader<MoveMessage>,
     map: Single<&mut Map>,
     mut q_actors: Query<(Entity, &mut Position), With<Actor>>,
+    mut commands: Commands,
 ) {
     for &MoveMessage(entity, new_pos) in reader.read() {
         if !map.is_walkable(new_pos) {
@@ -32,6 +34,7 @@ fn apply_move(
             .any(|(other, pos)| other != entity && pos.0 == new_pos);
 
         if occupied {
+            commands.trigger(announcement("Bump!"));
             continue;
         }
 

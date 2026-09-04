@@ -8,29 +8,32 @@ pub struct TurnSystemPlugin;
 
 impl Plugin for TurnSystemPlugin {
     fn build(&self, app: &mut App) {
-        app.init_state::<TurnState>();
-        app.configure_sets(
-            Update,
-            (
-                TurnSet::BeginInitiative,
-                TurnSet::DetermineIntent,
-                TurnSet::ResolveIntent,
-                TurnSet::Resolution,
-                TurnSet::Announcements,
-                TurnSet::CleanUp,
-                TurnSet::EndInitiative,
+        app.init_state::<TurnState>()
+            .init_resource::<IntentLog>()
+            .register_type::<IntentLog>()
+            .register_type::<Intent>()
+            .configure_sets(
+                Update,
+                (
+                    TurnSet::BeginInitiative,
+                    TurnSet::DetermineIntent,
+                    TurnSet::ResolveIntent,
+                    TurnSet::Resolution,
+                    TurnSet::Announcements,
+                    TurnSet::CleanUp,
+                    TurnSet::EndInitiative,
+                )
+                    .chain()
+                    .run_if(in_state(TurnState::Processing)),
             )
-                .chain()
-                .run_if(in_state(TurnState::Processing)),
-        );
-        app.add_systems(
-            Update,
-            (
-                begin_turn.in_set(TurnSet::BeginInitiative),
-                resolve_intent.in_set(TurnSet::ResolveIntent),
-                end_turn.in_set(TurnSet::EndInitiative),
-            ),
-        );
+            .add_systems(
+                Update,
+                (
+                    begin_turn.in_set(TurnSet::BeginInitiative),
+                    resolve_intent.in_set(TurnSet::ResolveIntent),
+                    end_turn.in_set(TurnSet::EndInitiative),
+                ),
+            );
     }
 }
 
@@ -71,11 +74,14 @@ impl Default for Speed {
 pub struct Ready;
 
 /// Component representing the actor's next move.
-#[derive(Component, Clone, Copy, Default, Debug)]
+#[derive(Component, Reflect, Clone, Copy, Default, Debug)]
 pub struct Intent(pub Action);
 
+#[derive(Resource, Reflect, Debug, Default)]
+pub struct IntentLog(Vec<(Entity, Intent)>);
+
 #[allow(dead_code)]
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Reflect, Copy, Debug, Default)]
 pub enum Action {
     Move {
         target: IVec2,
@@ -119,36 +125,36 @@ pub fn begin_turn(
 }
 
 fn resolve_intent(
-    acting: Query<(Entity, Option<&Intent>, &mut Energy), With<Ready>>,
+    acting: Query<(Entity, &Intent, &mut Energy), With<Ready>>,
     others: Query<(Entity, &Position), Without<Ready>>,
     mut moves: MessageWriter<MoveMessage>,
     mut attacks: MessageWriter<AttackMessage>,
     mut commands: Commands,
+    mut intent_log: ResMut<IntentLog>,
 ) {
     for (entity, intent, mut energy) in acting {
         // Determine if we're bumping into an enemy. Emit an attack action if so. Otherwise, emit the move message.
         // TODO: this redirection should perhaps be moved to the ai... you can bump into something on accident.
-        if let Some(intent) = intent {
-            match intent.0 {
-                Action::Move { target } => {
-                    if let Some(obstructing_enemy) = others
-                        .iter()
-                        .filter(|(other, pos)| *other != entity && pos.0 == target)
-                        .next()
-                    {
-                        attacks.write(AttackMessage {
-                            attacker: entity,
-                            defender: obstructing_enemy.0,
-                        });
-                    } else {
-                        moves.write(MoveMessage(entity, target));
-                    }
+        intent_log.0.push((entity, *intent));
+        match intent.0 {
+            Action::Move { target } => {
+                if let Some(obstructing_enemy) = others
+                    .iter()
+                    .filter(|(other, pos)| *other != entity && pos.0 == target)
+                    .next()
+                {
+                    attacks.write(AttackMessage {
+                        attacker: entity,
+                        defender: obstructing_enemy.0,
+                    });
+                } else {
+                    moves.write(MoveMessage(entity, target));
                 }
-                _ => {}
             }
-            energy.0 -= intent.0.cost();
-            commands.entity(entity).remove::<Intent>();
+            _ => {}
         }
+        energy.0 -= intent.0.cost();
+        commands.entity(entity).remove::<Intent>();
     }
 }
 
